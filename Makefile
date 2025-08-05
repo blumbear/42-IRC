@@ -5,11 +5,11 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
 BUILTINS = 
 
-MAIN = main 
+MAIN = main  Irc
 
 EXECUTING = 
 
-ERROR_MANAGEMENT = errorPrinter
+ERROR_MANAGEMENT =
 
 PARSE = 
 
@@ -30,7 +30,16 @@ OBJ_DIR = obj/
 SRCS = $(addsuffix .cpp, $(SRC_FILES))
 OBJS = $(addprefix $(OBJ_DIR), $(addsuffix .o, $(FILES)))
 
-all: $(NAME)
+all : $(NAME)
+
+$(NAME) : $(OBJ_DIR) $(OBJS)
+	$(CC)  $(CFLAGS) -o $(NAME) $(OBJS)
+
+obj/%.o: src/*/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR):
+	mkdir $@
 
 clean :
 	rm -rf $(OBJ_DIR)
@@ -38,16 +47,7 @@ clean :
 fclean : clean
 	rm -rf $(NAME)
 
-re: fclean all
+re : fclean
+	make
 
-$(NAME): $(OBJ_DIR) $(OBJS)
-	$(CC) -o $@ $(OBJS)
-
-$(OBJ_DIR):
-	echo "here"
-	mkdir $@
-
-obj/%.o: src/*/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-.PHONY: all clean fclean re
+.PHONY : all clean fclean re
