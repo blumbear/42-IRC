@@ -15,15 +15,13 @@ int main(int ac , char **av) {
 	if (tmp < 1 || tmp > 65535)
 		return (Error::print(Error::InvalidPort));
 	std::cout << "Port is available." << std::endl;
-	while (true) {
-		try {
-			Irc irc = Irc(av[2], tmp);
-		}
-		catch (std::exception &e) {
-			std::cout << e.what() << std::endl;
-			freeData();
-			break;
-		}
+	try {
+		Irc irc = Irc(av[2], tmp);
+		irc.pollLoop();
+	}
+	catch (std::exception &e) {
+		std::cout << "Error: " << e.what() << std::endl;
+		freeData();
 	}
 	return (EXIT_SUCCESS);
 }
