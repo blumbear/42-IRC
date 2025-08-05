@@ -16,6 +16,8 @@
 #include <iostream>
 #include <exception>
 #include <cstdlib>
+#include <map>
+#include <vector>
 
 /* ================= Files includes ================= */
 
@@ -23,14 +25,17 @@
 
 /* =================== Env Struct =================== */
 
-class Irc {
+class Server {
 	private:
 		std::string	_password;
 		uint16_t	_port;
+		int			_serverFd;
+		std::map<std::string, std::string> _userMap;
 
 /* ============ Private Function ============ */
 
 		void initSocket();
+		// void newUser(pollfd fds);
 		
 	public:
 /* =========== Exception Handler =========== */
@@ -41,13 +46,15 @@ class Irc {
 		class BindError: public std::exception {public :const char* what() const throw();};
 		class FcntlError: public std::exception {public :const char* what() const throw();};
 		class ListenError: public std::exception {public :const char* what() const throw();};
+		class SetsockoptError: public std::exception {public :const char* what() const throw();};
+		class PollError: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
 
-	Irc();
-	Irc(std::string password = "", uint16_t port = 0);
-	Irc(const Irc &other);
-	~Irc();
+	Server();
+	Server(std::string password = "", uint16_t port = 0);
+	Server(const Server &other);
+	~Server();
 
 /* ================= Loop ================= */
 

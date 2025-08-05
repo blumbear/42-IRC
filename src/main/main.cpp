@@ -16,8 +16,8 @@ int main(int ac , char **av) {
 		return (Error::print(Error::InvalidPort));
 	std::cout << "Port is available." << std::endl;
 	try {
-		Irc irc = Irc(av[2], tmp);
-		irc.pollLoop();
+		Server server = Server(av[2], tmp);
+		server.pollLoop();
 	}
 	catch (std::exception &e) {
 		std::cout << "Error: " << e.what() << std::endl;
