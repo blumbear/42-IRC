@@ -9,8 +9,6 @@ MAIN = main  Irc
 
 EXECUTING = 
 
-ERROR_MANAGEMENT =
-
 PARSE = 
 
 FILES = $(MAIN) \
@@ -22,7 +20,6 @@ $(PARSE)
 SRC_FILES = $(addprefix src/builtins/, $(BUILTINS)) \
 $(addprefix src/executing/, $(EXECUTING)) \
 $(addprefix src/main/, $(MAIN)) \
-$(addprefix src/error_management/, $(ERROR_MANAGEMENT)) \
 $(addprefix src/parse/, $(PARSE))
 
 OBJ_DIR = obj/

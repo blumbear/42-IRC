@@ -1,13 +1,21 @@
 #pragma once
 
-/* ================= Lib Includes ================= */
+/* ================= C Lib Includes ================= */
 
-#include <stdlib.h>
-#include <ctype.h>
+#include <stdint.h>
+#include <poll.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <fcntl.h> 
+#include <arpa/inet.h>
+
+/* ================= C++ Lib Includes ================= */
+
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <exception>
-#include <stdint.h>
+#include <cstdlib>
 
 /* ================= Files includes ================= */
 
@@ -20,12 +28,20 @@ class Irc {
 		std::string	_password;
 		uint16_t	_port;
 
+/* ============ Private Function ============ */
+
+		void initSocket();
+		
 	public:
 /* =========== Exception Handler =========== */
-		class Test: public std::exception {
-			public :
-				const char* what() const throw();
-		};
+
+		class UnknownError: public std::exception {public :const char* what() const throw();};
+		class ArgError: public std::exception {public :const char* what() const throw();};
+		class SocketError: public std::exception {public :const char* what() const throw();};
+		class BindError: public std::exception {public :const char* what() const throw();};
+		class FcntlError: public std::exception {public :const char* what() const throw();};
+		class ListenError: public std::exception {public :const char* what() const throw();};
+
 /* ======= Constructor & Destructor ======= */
 
 	Irc();
@@ -33,4 +49,7 @@ class Irc {
 	Irc(const Irc &other);
 	~Irc();
 
+/* ================= Loop ================= */
+
+	void pollLoop();
 };
