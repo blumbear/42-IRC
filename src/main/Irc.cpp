@@ -71,14 +71,15 @@ void Server::initSocket() {
 		throw (ListenError());
 }
 
-void Server::newUser(std::vector<pollfd> fds) {
+void Server::newClient(std::vector<pollfd>& fds) {
 	// Nouvelle connexion
 	struct sockaddr_in client_addr;
 	socklen_t addr_len = sizeof(client_addr);
 	int client_fd = accept(_serverFd, (struct sockaddr*)&client_addr, &addr_len);
 	if (client_fd >= 0) {
-		fds.push_back({client_fd, POLLIN, 0});
-		std::cout << "New client connected: fd = " << client_fd << std::endl;
+		pollfd tmp = {client_fd, POLLIN, 0};
+		fds.push_back(tmp);
+		std::cout << "New client connected: fd = " << client_fd << std::endl;	
 	}
 	else
 		std::cerr << "New client failed to connect" << std::endl;
@@ -87,18 +88,38 @@ void Server::newUser(std::vector<pollfd> fds) {
 /* ================= Loop ================= */
 
 void Server::pollLoop() {
-	std::vector<pollfd> fds;
-	fds.push_back({_serverFd, POLLIN, 0});  // Server to check with accept()
-
 	while (true) {
+		std::vector<pollfd> fds;
+		pollfd tmp = {_serverFd, POLLIN, 0};
+		fds.push_back(tmp);  // Server to check with accept()
+
 		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
 		if (activity < 0)
 			throw (PollError());
 
-		for (int i = 0; fds.size(); i++) {
+		for (size_t i = 0; i < fds.size(); i++) {
 			if (fds[i].revents & POLLIN) {
 				if (fds[i].fd == _serverFd)
-					newUser(fds);
+					newClient(fds);
+				else {
+					// recv renvoi la longueur du message recu si elle reussi sinon -1
+					char buffer[1024];
+					int bytes = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+					std::cout << "recv: " << &recv << std::endl;
+					if (bytes <= 0) {
+						std::cout << "Client déconnecté: fd = " << fds[i].fd << std::endl;
+						close(fds[i].fd);
+						fds.erase(fds.begin() + i);
+						--i; // ajuster l'index après suppression
+					} else {
+						buffer[bytes] = '\0';
+						std::cout << "Message du client " << fds[i].fd << ": " << buffer;
+
+						// (Optionnel) Répondre au client
+						std::string response = "PONG\r\n";
+						send(fds[i].fd, response.c_str(), response.size(), 0);
+					}
+				}
 			}
 		}
 	}
