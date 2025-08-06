@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <fcntl.h> 
 #include <arpa/inet.h>
+#include <unistd.h>
 
 /* ================= C++ Lib Includes ================= */
 
@@ -35,7 +36,7 @@ class Server {
 /* ============ Private Function ============ */
 
 		void initSocket();
-		// void newUser(pollfd fds);
+		void newClient(std::vector<pollfd>& fds);
 		
 	public:
 /* =========== Exception Handler =========== */
