@@ -101,25 +101,6 @@ void Server::pollLoop() {
 			if (fds[i].revents & POLLIN) {
 				if (fds[i].fd == _serverFd)
 					newClient(fds);
-				else {
-					// recv renvoi la longueur du message recu si elle reussi sinon -1
-					char buffer[1024];
-					int bytes = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
-					std::cout << "recv: " << &recv << std::endl;
-					if (bytes <= 0) {
-						std::cout << "Client déconnecté: fd = " << fds[i].fd << std::endl;
-						close(fds[i].fd);
-						fds.erase(fds.begin() + i);
-						--i; // ajuster l'index après suppression
-					} else {
-						buffer[bytes] = '\0';
-						std::cout << "Message du client " << fds[i].fd << ": " << buffer;
-
-						// (Optionnel) Répondre au client
-						std::string response = "PONG\r\n";
-						send(fds[i].fd, response.c_str(), response.size(), 0);
-					}
-				}
 			}
 		}
 	}
