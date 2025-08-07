@@ -9,4 +9,4 @@
 
 ### nc :
 - lunch the command `nc <server's Ip address> <server's port>` to connect the client to the server.
-- next use the command `NICK <nickname>` and `USER <nickname> <hostname> <servername> <username>` to being identificate on this server. (help: the hostname is historicaly 0 and the server's name is * if you don't know it or don't use it.)
+- next use the command `NICK <nickname>` and `USER <username> <hostname> <servername> <realname>` to being identificate on this server. (help: the hostname is historicaly 0 and the server's name is * if you don't know it or don't use it.)
