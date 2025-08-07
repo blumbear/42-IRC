@@ -128,13 +128,13 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
 			catch (std::exception &e) {std::cout << e.what() << std::endl;}
 		}
-		else if (bytesRead == 0) {
-			std::cout << fds[i].fd << " Disconnected" << std::endl;
-			close(fds[i].fd);
-			fds.erase(fds.begin() + i);
-		} else {
-			std::cerr << "Error with the client : " << fds[i].fd << std::endl;
-		}
+	}
+	else if (bytesRead == 0) {
+		std::cout << fds[i].fd << " Disconnected" << std::endl;
+		close(fds[i].fd);
+		fds.erase(fds.begin() + i);
+	} else {
+		std::cerr << "Error with the client : " << fds[i].fd << std::endl;
 	}
 }
 

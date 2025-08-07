@@ -19,7 +19,7 @@ int main(int ac , char **av) {
 		server.pollLoop();
 	}
 	catch (std::exception &e) {
-		std::cout << "Error: " << e.what() << std::endl;
+		std::cout << "\033[32mError:\033[0m " << e.what() << std::endl;
 		freeData();
 	}
 	return (EXIT_SUCCESS);
