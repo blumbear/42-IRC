@@ -5,7 +5,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
 BUILTINS = 
 
-MAIN = main  Irc
+MAIN = main  Server
 
 EXECUTING = 
 
