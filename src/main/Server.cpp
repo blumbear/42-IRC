@@ -98,10 +98,6 @@ void Server::commandParse(const std::string& command, int clientFd) {
 			std::vector<std::string> tmpArrayBis = split(tmpArray[0], ' ');
 			tmpArray.erase(tmpArray.begin());
 			tmpArray.insert(tmpArray.begin(), tmpArrayBis.begin(), tmpArrayBis.end());
-			std::cout << "tmp array :" <<  tmpArray.size() << std::endl;
-			for (size_t i = 0; i < tmpArray.size(); i++) {
-				std::cout << "tmp array[" << i << "]: " << tmpArray[i] << std::endl;
-			}
 			if (tmpArray.size() != 5)
 				throw (UserCmdError());
 			_userMap[clientFd]._username = tmpArray[1];
