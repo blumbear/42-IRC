@@ -165,6 +165,13 @@ void Server::displayPrompt() {
 		std::cout << "🗝️  Port: " << _port << std::endl;
 		std::cout << "🔑 Password: " << _password << std::endl << std::endl;
 		std::cout << "Server IRC started at " << getIpAddress() << ":" << _port << std::endl;
+		file.close();
+		file.open("src/prompt/logPrompt.txt");
+		if (file) {
+			while (std::getline(file, line))
+				std::cout<< "\033[32m" << line << "\033[0m" << std::endl;
+		}
+
 	} else {
 		std::cout << "Prompt file not found." << std::endl;
 	}
