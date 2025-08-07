@@ -79,15 +79,54 @@ void Server::newClient(std::vector<pollfd>& fds) {
 	if (client_fd >= 0) {
 		pollfd tmp = {client_fd, POLLIN, 0};
 		fds.push_back(tmp);
-		std::cout << "New client connected: fd = " << client_fd << std::endl;	
+		_userMap[client_fd];
+		std::cout << client_fd << " Is connected" << std::endl;
 	}
 	else
-		std::cerr << "New client failed to connect" << std::endl;
+		std::cerr << "Client failed to connect" << std::endl;
 }
 
-// void Server::commandParse(const std::string& command, int clientFd) {
+void Server::commandParse(const std::string& command, int clientFd) {
 
-// }
+	if (clientIsRegistered(clientFd) == false) {
+		if (command.compare(0, 5, "NICK ") == 0)
+			_userMap[clientFd]._nickname = command.substr(5);
+		else if (command.compare(0, 5, "USER ") == 0)
+			_userMap[clientFd]._username = command.substr(5);
+		if (clientIsRegistered(clientFd) == true)
+			std::cout << "client ID: " << clientFd << " nick: " << _userMap[clientFd]._nickname << " user: " << _userMap[clientFd]._username << std::endl;
+	}
+}
+
+bool Server::clientIsRegistered(int clientFd) {
+	return (_userMap[clientFd]._username != "" && _userMap[clientFd]._nickname != "");
+}
+
+void Server::handleCommand(std::vector<pollfd> fds, int i) {
+	char buffer[1024];
+	ssize_t bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+	if (bytesRead > 0) {
+		buffer[bytesRead] = '\0'; // Null-terminate
+		std::string command(buffer);
+		while (bytesRead > 0 && command.find('\n') == std::string::npos) {
+			bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+			buffer[bytesRead] = '\0'; // Null-terminate
+			command += buffer;
+		}
+		if (command != "\n") {
+			std::cout << fds[i].fd << " Send : "<< command;
+			commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);
+		}
+		else if (bytesRead == 0) {
+			std::cout << fds[i].fd << " Disconnected" << std::endl;
+			close(fds[i].fd);
+			fds.erase(fds.begin() + i);
+			--i;
+		} else {
+			std::cerr << "Error with the client : " << fds[i].fd << std::endl;
+		}
+	}
+}
 
 /* ================= Loop ================= */
 
@@ -105,27 +144,8 @@ void Server::pollLoop() {
 			if (fds[i].revents & POLLIN) {
 				if (fds[i].fd == _serverFd)
 					newClient(fds);
-				else {
-					char buffer[1024];
-					ssize_t bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
-					if (bytesRead > 0) {
-						buffer[bytesRead] = '\0'; // Null-terminate
-						std::string command(buffer);
-						while (bytesRead > 0 && command.find('\n') == std::string::npos) {
-							bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
-							buffer[bytesRead] = '\0'; // Null-terminate
-							command += buffer;
-						}
-						std::cout << "Commande reçue du client fd " << fds[i].fd << " : " << command;
-					} else if (bytesRead == 0) {
-						std::cout << "Client déconnecté : fd = " << fds[i].fd << std::endl;
-						close(fds[i].fd);
-						fds.erase(fds.begin() + i);
-						--i;
-					} else {
-						std::cerr << "Erreur de lecture sur le client fd " << fds[i].fd << std::endl;
-					}
-				}
+				else
+					handleCommand(fds, i);
 			}
 		}
 	}

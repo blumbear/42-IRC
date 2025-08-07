@@ -26,18 +26,25 @@
 
 /* =================== Env Struct =================== */
 
+struct clientId {
+	std::string _username;
+	std::string _nickname;
+};
+
 class Server {
 	private:
 		std::string	_password;
 		uint16_t	_port;
 		int			_serverFd;
-		std::map<std::string, std::string> _userMap;
+		std::map<int, clientId> _userMap; // map of fd and nickname username
 
 /* ============ Private Function ============ */
 
 		void initSocket();
 		void newClient(std::vector<pollfd>& fds);
 		void commandParse(const std::string& command, int clientFd);
+		bool clientIsRegistered(int clientFd);
+		void handleCommand(std::vector<pollfd> fds, int i);
 		
 	public:
 /* =========== Exception Handler =========== */
