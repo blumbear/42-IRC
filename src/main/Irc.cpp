@@ -85,6 +85,10 @@ void Server::newClient(std::vector<pollfd>& fds) {
 		std::cerr << "New client failed to connect" << std::endl;
 }
 
+// void Server::commandParse(const std::string& command, int clientFd) {
+
+// }
+
 /* ================= Loop ================= */
 
 void Server::pollLoop() {
@@ -107,7 +111,15 @@ void Server::pollLoop() {
 					if (bytesRead > 0) {
 						buffer[bytesRead] = '\0'; // Null-terminate
 						std::string command(buffer);
-						std::cout << "Commande reçue du client fd " << fds[i].fd << " : " << command << std::endl;
+						if (command.find('\n') == std::string::npos) {
+							while (bytesRead > 0 ) {
+								bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+								buffer[bytesRead] = '\0'; // Null-terminate
+								command += buffer;
+							}
+						}
+						std::cout << "Commande reçue du client fd " << fds[i].fd << " : " << command;
+						// commandParse(command, fds[i].fd);
 						
 					} else if (bytesRead == 0) {
 						std::cout << "Client déconnecté : fd = " << fds[i].fd << std::endl;

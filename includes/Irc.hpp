@@ -37,6 +37,7 @@ class Server {
 
 		void initSocket();
 		void newClient(std::vector<pollfd>& fds);
+		void commandParse(const std::string& command, int clientFd);
 		
 	public:
 /* =========== Exception Handler =========== */
