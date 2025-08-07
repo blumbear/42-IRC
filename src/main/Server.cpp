@@ -18,6 +18,8 @@ const char* Server::SetsockoptError::what() const throw() {return ("Server can't
 
 const char* Server::PollError::what() const throw() {return ("Poll failed to read the socket.");}
 
+const char* Server::UserCmdError::what() const throw() {return ("USER command wrong arguments.");}
+
 /* ======= Constructor & Destructor ======= */
 
 Server::Server() {throw (ArgError());}
@@ -91,10 +93,22 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	if (clientIsRegistered(clientFd) == false) {
 		if (command.compare(0, 5, "NICK ") == 0)
 			_userMap[clientFd]._nickname = command.substr(5);
-		else if (command.compare(0, 5, "USER ") == 0)
-			_userMap[clientFd]._username = command.substr(5);
+		else if (command.compare(0, 5, "USER ") == 0){
+			std::vector<std::string> tmpArray = split(command, ':');
+			std::vector<std::string> tmpArrayBis = split(tmpArray[0], ' ');
+			tmpArray.erase(tmpArray.begin());
+			tmpArray.insert(tmpArray.begin(), tmpArrayBis.begin(), tmpArrayBis.end());
+			std::cout << "tmp array :" <<  tmpArray.size() << std::endl;
+			for (size_t i = 0; i < tmpArray.size(); i++) {
+				std::cout << "tmp array[" << i << "]: " << tmpArray[i] << std::endl;
+			}
+			if (tmpArray.size() != 5)
+				throw (UserCmdError());
+			_userMap[clientFd]._username = tmpArray[1];
+			_userMap[clientFd]._realname = tmpArray[4];
+		}
 		if (clientIsRegistered(clientFd) == true)
-			std::cout << "client ID: " << clientFd << " nick: " << _userMap[clientFd]._nickname << " user: " << _userMap[clientFd]._username << std::endl;
+			std::cout << "client ID: " << clientFd << " nick: " << _userMap[clientFd]._nickname << " user: " << _userMap[clientFd]._username << " real name: " << _userMap[clientFd]._realname <<  std::endl;
 	}
 }
 
@@ -115,7 +129,8 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 		}
 		if (command != "\n") {
 			std::cout << fds[i].fd << " Send : "<< command;
-			commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);
+			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
+			catch (std::exception &e) {std::cout << e.what() << std::endl;}
 		}
 		else if (bytesRead == 0) {
 			std::cout << fds[i].fd << " Disconnected" << std::endl;
@@ -149,4 +164,16 @@ void Server::pollLoop() {
 			}
 		}
 	}
+}
+
+/* ================= Utils ================= */
+
+std::vector<std::string> Server::split(const std::string& str, char delimiter) {
+	std::vector<std::string> tokens;
+	std::stringstream ss(str);
+	std::string item;
+	while (std::getline(ss, item, delimiter)) {
+		tokens.push_back(item);
+	}
+	return tokens;
 }

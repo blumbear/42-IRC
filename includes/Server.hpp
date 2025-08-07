@@ -15,6 +15,7 @@
 #include <string>
 #include <cstring>
 #include <iostream>
+#include <sstream>
 #include <exception>
 #include <cstdlib>
 #include <map>
@@ -28,6 +29,7 @@
 
 struct clientId {
 	std::string _username;
+	std::string _realname;
 	std::string _nickname;
 };
 
@@ -58,6 +60,8 @@ class Server {
 		class SetsockoptError: public std::exception {public :const char* what() const throw();};
 		class PollError: public std::exception {public :const char* what() const throw();};
 
+		class UserCmdError: public std::exception {public :const char* what() const throw();};
+
 /* ======= Constructor & Destructor ======= */
 
 	Server();
@@ -68,4 +72,8 @@ class Server {
 /* ================= Loop ================= */
 
 	void pollLoop();
+
+/* ================= Utils ================= */
+
+std::vector<std::string> split(const std::string& str, char delimiter);
 };
