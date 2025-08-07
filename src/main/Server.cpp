@@ -132,10 +132,41 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 			std::cout << fds[i].fd << " Disconnected" << std::endl;
 			close(fds[i].fd);
 			fds.erase(fds.begin() + i);
-			--i;
 		} else {
 			std::cerr << "Error with the client : " << fds[i].fd << std::endl;
 		}
+	}
+}
+
+std::string getIpAddress() {
+	std::string ip;
+	FILE* fp = popen("hostname -I | awk '{print $1}'", "r");
+	if (fp) {
+		char buffer[128];
+		if (fgets(buffer, sizeof(buffer), fp) != NULL) {
+			ip = buffer;
+			// Enlève le retour à la ligne éventuel
+			ip.erase(ip.find_last_not_of(" \n\r") + 1);
+		}
+		pclose(fp);
+	}
+	return ip;
+}
+
+
+void Server::displayPrompt() {
+	std::ifstream file("src/prompt/serverHome.txt");
+	if (file) {
+		std::string line;
+		while (std::getline(file, line)) {
+			std::cout<< "\033[34m" << line << "\033[0m" << std::endl;
+		}
+		std::cout << "🚀 Server started successfuly!" << std::endl << std::endl;
+		std::cout << "🗝️  Port: " << _port << std::endl;
+		std::cout << "🔑 Password: " << _password << std::endl << std::endl;
+		std::cout << "Server IRC started at " << getIpAddress() << ":" << _port << std::endl;
+	} else {
+		std::cout << "Prompt file not found." << std::endl;
 	}
 }
 
@@ -145,6 +176,7 @@ void Server::pollLoop() {
 	std::vector<pollfd> fds;
 	pollfd tmp = {_serverFd, POLLIN, 0};
 	fds.push_back(tmp);  // Server to check with accept()
+	displayPrompt();
 	while (true) {
 
 		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
