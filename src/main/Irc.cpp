@@ -88,10 +88,10 @@ void Server::newClient(std::vector<pollfd>& fds) {
 /* ================= Loop ================= */
 
 void Server::pollLoop() {
+	std::vector<pollfd> fds;
+	pollfd tmp = {_serverFd, POLLIN, 0};
+	fds.push_back(tmp);  // Server to check with accept()
 	while (true) {
-		std::vector<pollfd> fds;
-		pollfd tmp = {_serverFd, POLLIN, 0};
-		fds.push_back(tmp);  // Server to check with accept()
 
 		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
 		if (activity < 0)
@@ -101,6 +101,23 @@ void Server::pollLoop() {
 			if (fds[i].revents & POLLIN) {
 				if (fds[i].fd == _serverFd)
 					newClient(fds);
+				else {
+					char buffer[1024];
+					ssize_t bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+					if (bytesRead > 0) {
+						buffer[bytesRead] = '\0'; // Null-terminate
+						std::string command(buffer);
+						std::cout << "Commande reçue du client fd " << fds[i].fd << " : " << command << std::endl;
+						
+					} else if (bytesRead == 0) {
+						std::cout << "Client déconnecté : fd = " << fds[i].fd << std::endl;
+						close(fds[i].fd);
+						fds.erase(fds.begin() + i);
+						--i;
+					} else {
+						std::cerr << "Erreur de lecture sur le client fd " << fds[i].fd << std::endl;
+					}
+				}
 			}
 		}
 	}
