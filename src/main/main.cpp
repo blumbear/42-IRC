@@ -14,7 +14,6 @@ int main(int ac , char **av) {
 	int tmp = atoi(av[1]);
 	if (tmp < 1 || tmp > 65535)
 		return (Error::print(Error::InvalidPort));
-	std::cout << "Port is available." << std::endl;
 	try {
 		Server server = Server(av[2], tmp);
 		server.pollLoop();
