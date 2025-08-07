@@ -16,6 +16,7 @@
 #include <cstring>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <exception>
 #include <cstdlib>
 #include <map>
@@ -47,6 +48,7 @@ class Server {
 		void commandParse(const std::string& command, int clientFd);
 		bool clientIsRegistered(int clientFd);
 		void handleCommand(std::vector<pollfd> fds, int i);
+		void displayPrompt();
 		
 	public:
 /* =========== Exception Handler =========== */
@@ -75,5 +77,5 @@ class Server {
 
 /* ================= Utils ================= */
 
-std::vector<std::string> split(const std::string& str, char delimiter);
+	std::vector<std::string> split(const std::string& str, char delimiter);
 };
