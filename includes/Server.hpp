@@ -21,6 +21,7 @@
 #include <cstdlib>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 /* ================= Files includes ================= */
 
@@ -49,6 +50,7 @@ class Server {
 		bool clientIsRegistered(int clientFd);
 		void handleCommand(std::vector<pollfd> fds, int i);
 		void displayPrompt();
+		void sendToClient(int client, const std::string& msg);
 		
 	public:
 /* =========== Exception Handler =========== */

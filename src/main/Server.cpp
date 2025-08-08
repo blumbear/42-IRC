@@ -83,9 +83,15 @@ void Server::newClient(std::vector<pollfd>& fds) {
 		fds.push_back(tmp);
 		_userMap[client_fd];
 		std::cout << client_fd << " Is connected" << std::endl;
+		sendToClient(client_fd, "Welcome on the IRC server!!");
 	}
 	else
 		std::cerr << "Client failed to connect" << std::endl;
+}
+
+void Server::sendToClient(int clientFd, const std::string& msg) {
+	std::string toSend = msg + "\r\n";
+	send(clientFd, toSend.c_str(), toSend.size(), 0);
 }
 
 void Server::commandParse(const std::string& command, int clientFd) {
@@ -124,6 +130,13 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 			command += buffer;
 		}
 		if (command != "\n") {
+			if (std::count(command.begin(), command.end(), '\n') > 1) {
+				std::vector<std::string> darray = split(command, '\n');
+				for (size_t i = 0; i < darray.size(); i++) {
+					try {commandParse(darray[i].erase(darray[i].find_last_not_of("\r\n ") + 1), fds[i].fd);}
+					catch (std::exception &e) {std::cout << e.what() << std::endl;}
+				}
+			}
 			std::cout << fds[i].fd << " Send : "<< command;
 			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
 			catch (std::exception &e) {std::cout << e.what() << std::endl;}
@@ -145,7 +158,6 @@ std::string getIpAddress() {
 		char buffer[128];
 		if (fgets(buffer, sizeof(buffer), fp) != NULL) {
 			ip = buffer;
-			// Enlève le retour à la ligne éventuel
 			ip.erase(ip.find_last_not_of(" \n\r") + 1);
 		}
 		pclose(fp);
