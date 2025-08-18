@@ -22,6 +22,7 @@
 #include <map>
 #include <vector>
 #include <algorithm>
+#include <ctime>
 
 /* ================= Files includes ================= */
 
@@ -40,6 +41,7 @@ class Server {
 		std::string	_password;
 		uint16_t	_port;
 		int			_serverFd;
+		const std::string _serverName;
 		std::map<int, clientId> _userMap; // map of fd and nickname username
 
 /* ============ Private Function ============ */
@@ -51,6 +53,9 @@ class Server {
 		void handleCommand(std::vector<pollfd> fds, int i);
 		void displayPrompt();
 		void sendToClient(int client, const std::string& msg);
+		void sendConnectionMsg(int clientFd);
+		std::string getIpAddress();
+		void 	sendPingToAllClients();
 		
 	public:
 /* =========== Exception Handler =========== */

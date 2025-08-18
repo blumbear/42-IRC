@@ -25,7 +25,7 @@ const char* Server::UserCmdError::what() const throw() {return ("USER command wr
 Server::Server() {throw (ArgError());}
 
 Server::Server(std::string password, uint16_t port) :
-_password(password), _port(port) {initSocket();}
+_password(password), _port(port), _serverName("42_IRC") {initSocket();}
 
 Server::Server(const Server &other) {
 	if (this != &other) {
@@ -83,7 +83,6 @@ void Server::newClient(std::vector<pollfd>& fds) {
 		fds.push_back(tmp);
 		_userMap[client_fd];
 		std::cout << client_fd << " Is connected" << std::endl;
-		sendToClient(client_fd, "Welcome on the IRC server!!");
 	}
 	else
 		std::cerr << "Client failed to connect" << std::endl;
@@ -91,7 +90,14 @@ void Server::newClient(std::vector<pollfd>& fds) {
 
 void Server::sendToClient(int clientFd, const std::string& msg) {
 	std::string toSend = msg + "\r\n";
+	std::cout << "send :" << toSend;
 	send(clientFd, toSend.c_str(), toSend.size(), 0);
+}
+
+void Server::sendConnectionMsg(int clientFd) {
+	std::string welcomeMsg = ":";
+	welcomeMsg = welcomeMsg + _serverName + " 001 " + _userMap[clientFd]._nickname + " :Welcome to the Internet Relay Network " +  _userMap[clientFd]._nickname + "!" +  _userMap[clientFd]._username + "@" + getIpAddress();
+	sendToClient(clientFd, welcomeMsg);
 }
 
 void Server::commandParse(const std::string& command, int clientFd) {
@@ -109,8 +115,10 @@ void Server::commandParse(const std::string& command, int clientFd) {
 			_userMap[clientFd]._username = tmpArray[1];
 			_userMap[clientFd]._realname = tmpArray[4];
 		}
-		if (clientIsRegistered(clientFd) == true)
+		if (clientIsRegistered(clientFd) == true) {
 			std::cout << "client ID: " << clientFd << " nick: " << _userMap[clientFd]._nickname << " user: " << _userMap[clientFd]._username << " real name: " << _userMap[clientFd]._realname <<  std::endl;
+			sendConnectionMsg(clientFd);
+		}
 	}
 }
 
@@ -151,7 +159,7 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 	}
 }
 
-std::string getIpAddress() {
+std::string Server::getIpAddress() {
 	std::string ip;
 	FILE* fp = popen("hostname -I | awk '{print $1}'", "r");
 	if (fp) {
@@ -189,6 +197,15 @@ void Server::displayPrompt() {
 	}
 }
 
+// Ajoutez cette fonction à votre classe Server
+void Server::sendPingToAllClients() {
+	std::cout << "ping client" << std::endl;
+    for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
+        int clientFd = it->first;
+        sendToClient(clientFd, "PING :" + _serverName);
+    }
+}
+
 /* ================= Loop ================= */
 
 void Server::pollLoop() {
@@ -196,6 +213,7 @@ void Server::pollLoop() {
 	pollfd tmp = {_serverFd, POLLIN, 0};
 	fds.push_back(tmp);  // Server to check with accept()
 	displayPrompt();
+	time_t lastPing = time(NULL);
 	while (true) {
 
 		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
@@ -210,6 +228,13 @@ void Server::pollLoop() {
 					handleCommand(fds, i);
 			}
 		}
+
+		 // Envoi du PING toutes les 60 secondes
+        time_t now = time(NULL);
+        if (now - lastPing >= 60) {
+            sendPingToAllClients();
+            lastPing = now;
+        }
 	}
 }
 
