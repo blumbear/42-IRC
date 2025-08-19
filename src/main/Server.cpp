@@ -45,7 +45,7 @@ void Server::initSocket() {
 	// 0 -> used protocol
 	_serverFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverFd < 0)
-    	throw(SocketError());
+		throw(SocketError());
 
 	if (fcntl(_serverFd, F_SETFL, O_NONBLOCK) < 0)
 		throw ((FcntlError()));
@@ -67,6 +67,8 @@ void Server::initSocket() {
 	// bind the socket to the address
 	if (bind(_serverFd, (struct sockaddr *)&address, sizeof(address)) < 0)
 		throw (SocketError());
+
+	getIpAddress();
 
 	// SOMAXCONN -> Socket Max Connexion (default 1024)
 	if (listen(_serverFd, SOMAXCONN) < 0)
@@ -96,7 +98,7 @@ void Server::sendToClient(int clientFd, const std::string& msg) {
 
 void Server::sendConnectionMsg(int clientFd) {
 	std::string welcomeMsg = ":";
-	welcomeMsg = welcomeMsg + _serverName + " 001 " + _userMap[clientFd]._nickname + " :Welcome to the Internet Relay Network " +  _userMap[clientFd]._nickname + "!" +  _userMap[clientFd]._username + "@" + getIpAddress();
+	welcomeMsg = welcomeMsg + _serverName + " 001 " + _userMap[clientFd]._nickname + " :Welcome to the Internet Relay Network " +  _userMap[clientFd]._nickname + "!" +  _userMap[clientFd]._username + "@" + _serverIp;
 	sendToClient(clientFd, welcomeMsg);
 }
 
@@ -159,18 +161,15 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 	}
 }
 
-std::string Server::getIpAddress() {
-	std::string ip;
-	FILE* fp = popen("hostname -I | awk '{print $1}'", "r");
-	if (fp) {
-		char buffer[128];
-		if (fgets(buffer, sizeof(buffer), fp) != NULL) {
-			ip = buffer;
-			ip.erase(ip.find_last_not_of(" \n\r") + 1);
-		}
-		pclose(fp);
-	}
-	return ip;
+void Server::getIpAddress() {
+	system("hostname -I | awk '{print $1}' > src/prompt/ip.txt");
+	const std::string ipFile = "src/prompt/ip.txt";
+	std::ifstream file(ipFile.c_str());
+    std::stringstream ipS;
+    ipS << file.rdbuf();
+	system("rm src/prompt/ip.txt");
+	_serverIp = ipS.str();
+	_serverIp.erase(_serverIp.find_last_not_of(" \n\r") + 1);''
 }
 
 
@@ -184,7 +183,7 @@ void Server::displayPrompt() {
 		std::cout << "🚀 Server started successfuly!" << std::endl << std::endl;
 		std::cout << "🗝️  Port: " << _port << std::endl;
 		std::cout << "🔑 Password: " << _password << std::endl << std::endl;
-		std::cout << "Server IRC started at " << getIpAddress() << ":" << _port << std::endl;
+		std::cout << "Server IRC started at " << _serverIp << ":" << _port << std::endl;
 		file.close();
 		file.open("src/prompt/logPrompt.txt");
 		if (file) {
@@ -200,10 +199,10 @@ void Server::displayPrompt() {
 // Ajoutez cette fonction à votre classe Server
 void Server::sendPingToAllClients() {
 	std::cout << "ping client" << std::endl;
-    for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
-        int clientFd = it->first;
-        sendToClient(clientFd, "PING :" + _serverName);
-    }
+	for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
+		int clientFd = it->first;
+		sendToClient(clientFd, "PING :" + _serverName);
+	}
 }
 
 /* ================= Loop ================= */
@@ -230,11 +229,11 @@ void Server::pollLoop() {
 		}
 
 		 // Envoi du PING toutes les 60 secondes
-        time_t now = time(NULL);
-        if (now - lastPing >= 60) {
-            sendPingToAllClients();
-            lastPing = now;
-        }
+		time_t now = time(NULL);
+		if (now - lastPing >= 60) {
+			sendPingToAllClients();
+			lastPing = now;
+		}
 	}
 }
 

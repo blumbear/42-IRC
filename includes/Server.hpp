@@ -41,6 +41,8 @@ class Server {
 		std::string	_password;
 		uint16_t	_port;
 		int			_serverFd;
+		std::string _serverIp;
+		std::string _serverHost;
 		const std::string _serverName;
 		std::map<int, clientId> _userMap; // map of fd and nickname username
 
@@ -54,7 +56,7 @@ class Server {
 		void displayPrompt();
 		void sendToClient(int client, const std::string& msg);
 		void sendConnectionMsg(int clientFd);
-		std::string getIpAddress();
+		void getIpAddress();
 		void 	sendPingToAllClients();
 		
 	public:
