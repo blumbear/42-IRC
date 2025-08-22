@@ -5,7 +5,7 @@
 Server::Server() {throw (ArgError());}
 
 Server::Server(std::string password, uint16_t port) :
-_password(password), _port(port), _serverName("42_IRC") {initSocket();}
+_password(password), _port(port), _serverOption("mutli-prefix server-time invite-notify "), _serverName("42_IRC") {initSocket();}
 
 Server::Server(const Server &other) {
 	if (this != &other) {
@@ -64,6 +64,7 @@ void Server::newClient(std::vector<pollfd>& fds) {
 		pollfd tmp = {client_fd, POLLIN, 0};
 		fds.push_back(tmp);
 		_userMap[client_fd];
+		_userMap[client_fd]._allReadyConnect = false;
 		std::cout << client_fd << " Is connected" << std::endl;
 	}
 	else
@@ -92,23 +93,16 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 	if (bytesRead > 0) {
 		buffer[bytesRead] = '\0'; // Null-terminate
 		std::string command(buffer);
-		while (bytesRead > 0 && command.find('\n') == std::string::npos) {
-			bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
-			buffer[bytesRead] = '\0'; // Null-terminate
-			command += buffer;
-		}
-		if (command != "\n") {
-			if (std::count(command.begin(), command.end(), '\n') > 1) {
-				std::vector<std::string> darray = split(command, '\n');
-				for (size_t i = 0; i < darray.size(); i++) {
-					try {commandParse(darray[i].erase(darray[i].find_last_not_of("\r\n ") + 1), fds[i].fd);}
-					catch (std::exception &e) {std::cout << e.what() << std::endl;}
-				}
+		if (std::count(command.begin(), command.end(), '\n') > 1) {
+			std::vector<std::string> darray = split(command, '\n');
+			for (size_t i = 0; i < darray.size(); i++) {
+				try {commandParse(darray[i], fds[i].fd);}
+				catch (std::exception &e) {std::cout << e.what() << std::endl;}
 			}
-			std::cout << fds[i].fd << " Send : "<< command;
-			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
-			catch (std::exception &e) {std::cout << e.what() << std::endl;}
 		}
+		std::cout << fds[i].fd << " Send : "<< command;
+		try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
+		catch (std::exception &e) {std::cout << e.what() << std::endl;}
 	}
 	else if (bytesRead == 0) {
 		std::cout << fds[i].fd << " Disconnected" << std::endl;
@@ -123,8 +117,8 @@ void Server::getIpAddress() {
 	system("hostname -I | awk '{print $1}' > src/prompt/ip.txt");
 	const std::string ipFile = "src/prompt/ip.txt";
 	std::ifstream file(ipFile.c_str());
-    std::stringstream ipS;
-    ipS << file.rdbuf();
+	std::stringstream ipS;
+	ipS << file.rdbuf();
 	system("rm src/prompt/ip.txt");
 	_serverIp = ipS.str();
 	_serverIp.erase(_serverIp.find_last_not_of(" \n\r") + 1);
@@ -173,6 +167,13 @@ void Server::pollLoop() {
 	time_t lastPing = time(NULL);
 	while (true) {
 
+		// Envoi du PING toutes les 60 secondes
+		time_t now = time(NULL);
+		if (now - lastPing >= 60) {
+			sendPingToAllClients();
+			lastPing = now;
+		}
+
 		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
 		if (activity < 0)
 			throw (PollError());
@@ -186,12 +187,6 @@ void Server::pollLoop() {
 			}
 		}
 
-		 // Envoi du PING toutes les 60 secondes
-		time_t now = time(NULL);
-		if (now - lastPing >= 60) {
-			sendPingToAllClients();
-			lastPing = now;
-		}
 	}
 }
 

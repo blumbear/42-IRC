@@ -5,7 +5,7 @@ CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
 BUILTINS = 
 
-MAIN = main  Server
+MAIN = main  Server Exception Parse
 
 EXECUTING = 
 

@@ -18,4 +18,9 @@ const char* Server::SetsockoptError::what() const throw() {return ("Server can't
 
 const char* Server::PollError::what() const throw() {return ("Poll failed to read the socket.");}
 
+
 const char* Server::UserCmdError::what() const throw() {return ("USER command wrong arguments.");}
+
+const char* Server::NickTooLongError::what() const throw() {return ("Nick is too long.");}
+
+const char* Server::UnknownCmdError::what() const throw() {return ("Unknown command or missing arguments.");}
