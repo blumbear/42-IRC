@@ -1,25 +1,5 @@
 #include "Server.hpp"
 
-/* =========== Exception Handler =========== */
-
-const char* Server::UnknownError::what() const throw() {return ("Unknown error.");}
-
-const char* Server::ArgError::what() const throw() {return ("Argument of the constructor must be password and port.");}
-
-const char* Server::SocketError::what() const throw() {return ("The socket creation failed.");}
-
-const char* Server::BindError::what() const throw() {return ("Socket bind to server unsuccessful.");}
-
-const char* Server::FcntlError::what() const throw() {return ("Socket is still in blocking mode.");}
-
-const char* Server::ListenError::what() const throw() {return ("Server cant listen the socket.");}
-
-const char* Server::SetsockoptError::what() const throw() {return ("Server can't set socket option.");}
-
-const char* Server::PollError::what() const throw() {return ("Poll failed to read the socket.");}
-
-const char* Server::UserCmdError::what() const throw() {return ("USER command wrong arguments.");}
-
 /* ======= Constructor & Destructor ======= */
 
 Server::Server() {throw (ArgError());}
@@ -102,28 +82,6 @@ void Server::sendConnectionMsg(int clientFd) {
 	sendToClient(clientFd, welcomeMsg);
 }
 
-void Server::commandParse(const std::string& command, int clientFd) {
-
-	if (clientIsRegistered(clientFd) == false) {
-		if (command.compare(0, 5, "NICK ") == 0)
-			_userMap[clientFd]._nickname = command.substr(5);
-		else if (command.compare(0, 5, "USER ") == 0){
-			std::vector<std::string> tmpArray = split(command, ':');
-			std::vector<std::string> tmpArrayBis = split(tmpArray[0], ' ');
-			tmpArray.erase(tmpArray.begin());
-			tmpArray.insert(tmpArray.begin(), tmpArrayBis.begin(), tmpArrayBis.end());
-			if (tmpArray.size() != 5)
-				throw (UserCmdError());
-			_userMap[clientFd]._username = tmpArray[1];
-			_userMap[clientFd]._realname = tmpArray[4];
-		}
-		if (clientIsRegistered(clientFd) == true) {
-			std::cout << "client ID: " << clientFd << " nick: " << _userMap[clientFd]._nickname << " user: " << _userMap[clientFd]._username << " real name: " << _userMap[clientFd]._realname <<  std::endl;
-			sendConnectionMsg(clientFd);
-		}
-	}
-}
-
 bool Server::clientIsRegistered(int clientFd) {
 	return (_userMap[clientFd]._username != "" && _userMap[clientFd]._nickname != "");
 }
@@ -169,7 +127,7 @@ void Server::getIpAddress() {
     ipS << file.rdbuf();
 	system("rm src/prompt/ip.txt");
 	_serverIp = ipS.str();
-	_serverIp.erase(_serverIp.find_last_not_of(" \n\r") + 1);''
+	_serverIp.erase(_serverIp.find_last_not_of(" \n\r") + 1);
 }
 
 
