@@ -34,31 +34,38 @@ struct clientId {
 	std::string _username;
 	std::string _realname;
 	std::string _nickname;
+	bool _allReadyConnect;
 };
 
 class Server {
 	private:
-		std::string	_password;
-		uint16_t	_port;
-		int			_serverFd;
-		std::string _serverIp;
-		std::string _serverHost;
-		const std::string _serverName;
-		std::map<int, clientId> _userMap; // map of fd and nickname username
+		std::string				_password;
+		uint16_t				_port;
+		int						_serverFd;
+		std::string 			_serverIp;
+		std::string 			_serverHost;
+		std::string 			_serverOption;
+		const std::string		_serverName;
+		std::map<int, clientId>	_userMap; // map of fd and nickname username
 
 /* ============ Private Function ============ */
 
 		void initSocket();
 		void newClient(std::vector<pollfd>& fds);
-		void commandParse(const std::string& command, int clientFd);
 		bool clientIsRegistered(int clientFd);
 		void handleCommand(std::vector<pollfd> fds, int i);
 		void displayPrompt();
 		void sendToClient(int client, const std::string& msg);
 		void sendConnectionMsg(int clientFd);
 		void getIpAddress();
-		void 	sendPingToAllClients();
+		void sendPingToAllClients();
 		
+		void commandParse(const std::string& command, int clientFd);
+		void nickCmd(int, const std::string&);
+		void userCmd(int, const std::string&);
+		std::string compareServOption(std::string);
+		void capCmd(int, const std::string&);
+		void pingCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 
@@ -72,6 +79,8 @@ class Server {
 		class PollError: public std::exception {public :const char* what() const throw();};
 
 		class UserCmdError: public std::exception {public :const char* what() const throw();};
+		class NickTooLongError: public std::exception {public :const char* what() const throw();};
+		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
 
