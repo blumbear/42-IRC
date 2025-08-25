@@ -3,6 +3,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <sys/socket.h>
 
 struct channelMod {
 	bool inviteOnly;
@@ -11,9 +12,14 @@ struct channelMod {
 	unsigned int userLimit; // if == 0 no user limit
 };
 
+struct clientInfo {
+	bool isOp;
+	int clientFd;
+};
+
 class Channel {
 	private:
-		std::map<std::string, bool> _userMap; // nom de chaque utilisateur sur le channel et si oui ou non il est op
+		std::map<std::string, clientInfo> _userMap; // nom de chaque utilisateur sur le channel et si oui ou non il est op
 		std::string _name;
 		channelMod _channelMod;
 	public:
@@ -43,5 +49,9 @@ class Channel {
 		void addPassword(std::string);
 		void addUserLimit(unsigned int);
 
+		void sendMessageToChannelUser(std::string);
+
+		void addUser(std::string, int, bool);
+		void removedUser(std::string);
 };
 

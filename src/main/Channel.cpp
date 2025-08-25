@@ -41,3 +41,22 @@ void Channel::addPassword(std::string newPassword) {
 }
 
 void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
+
+
+void Channel::sendMessageToChannelUser(std::string msg) {
+	std::string toSend = msg + "\r\n";
+	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
+		std::string toSend = msg + "\r\n";
+		send(it->second.clientFd, toSend.c_str(), toSend.size(), 0);
+	}
+}
+
+
+void Channel::addUser(std::string name, int clientFd, bool op) {
+	clientInfo newclientInfo;
+	newclientInfo.clientFd = clientFd;
+	newclientInfo.isOp = op;
+	_userMap[name] = newclientInfo;
+}
+
+void Channel::removedUser(std::string name) {_userMap.erase(name);}
