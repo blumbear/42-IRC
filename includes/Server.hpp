@@ -9,6 +9,8 @@
 #include <fcntl.h> 
 #include <arpa/inet.h>
 #include <unistd.h>
+#include <climits>
+#include <ctime>
 
 /* ================= C++ Lib Includes ================= */
 
@@ -22,11 +24,11 @@
 #include <map>
 #include <vector>
 #include <algorithm>
-#include <ctime>
 
 /* ================= Files includes ================= */
 
 #include "error.hpp"
+#include "Channel.hpp"
 
 /* =================== Env Struct =================== */
 
@@ -46,6 +48,7 @@ class Server {
 		std::string 			_serverHost;
 		std::string 			_serverOption;
 		const std::string		_serverName;
+		std::map<std::string, Channel> _channelMap;
 		std::map<int, clientId>	_userMap; // map of fd and nickname username
 
 /* ============ Private Function ============ */
@@ -86,7 +89,6 @@ class Server {
 
 	Server();
 	Server(std::string password = "", uint16_t port = 0);
-	Server(const Server &other);
 	~Server();
 
 /* ================= Loop ================= */

@@ -7,13 +7,6 @@ Server::Server() {throw (ArgError());}
 Server::Server(std::string password, uint16_t port) :
 _password(password), _port(port), _serverOption("mutli-prefix server-time invite-notify "), _serverName("42_IRC") {initSocket();}
 
-Server::Server(const Server &other) {
-	if (this != &other) {
-		_password = other._password;
-		_port = other._port;
-	}
-}
-
 Server::~Server() {}
 
 /* ============ Private Function ============ */
