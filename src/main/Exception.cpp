@@ -1,6 +1,7 @@
 #include "Server.hpp"
+#include "Channel.hpp"
 
-/* =========== Exception Handler =========== */
+/* =========== Server's Exception Handler =========== */
 
 const char* Server::UnknownError::what() const throw() {return ("Unknown error.");}
 
@@ -24,3 +25,11 @@ const char* Server::UserCmdError::what() const throw() {return ("USER command wr
 const char* Server::NickTooLongError::what() const throw() {return ("Nick is too long.");}
 
 const char* Server::UnknownCmdError::what() const throw() {return ("Unknown command or missing arguments.");}
+
+/* =========== Channel's Exception Handler =========== */
+
+const char* Channel::missingName::what() const throw() {return ("Missing name to create a channel.");}
+
+const char* Channel::passwordIncorect::what() const throw() {return ("The new password is incorect.");}
+
+const char* Channel::passwordTooLong::what() const throw() {return ("The new password is too long.");}
