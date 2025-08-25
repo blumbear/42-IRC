@@ -3,13 +3,7 @@ NAME = ircserv
 CC = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98 -Iincludes
 
-BUILTINS = 
-
-MAIN = main  Server Exception Parse
-
-EXECUTING = 
-
-PARSE = 
+MAIN = main  Server Exception Parse Channel
 
 FILES = $(MAIN) \
 $(BUILTINS) \
