@@ -26,6 +26,8 @@ const char* Server::NickTooLongError::what() const throw() {return ("Nick is too
 
 const char* Server::UnknownCmdError::what() const throw() {return ("Unknown command or missing arguments.");}
 
+const char* Server::JoinFormatError::what() const throw() {return (":server 461 <nick> JOIN :Not enough parameters");}
+
 /* =========== Channel's Exception Handler =========== */
 
 const char* Channel::missingName::what() const throw() {return ("Missing name to create a channel.");}
