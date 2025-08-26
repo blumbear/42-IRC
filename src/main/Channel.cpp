@@ -2,7 +2,7 @@
 
 /* ======= Constructor & Destructor ======= */
 
-Channel::Channel() {throw missingName();}
+Channel::Channel() : _name("default") {}
 
 Channel::Channel(std::string name) : _name(name) {
 	_channelMod.inviteOnly = false;
@@ -12,6 +12,15 @@ Channel::Channel(std::string name) : _name(name) {
 }
 
 Channel::~Channel() {}
+
+Channel &Channel::operator=(const Channel &other) {
+	if (this != &other) {
+		_name = other._name;
+		_userMap = other._userMap;
+		_channelMod = other._channelMod;
+	}
+	return (*this);
+}
 
 /* =========== Member Function =========== */
 

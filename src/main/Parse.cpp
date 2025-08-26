@@ -6,11 +6,17 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["USER"] = &Server::userCmd;
 	cmdMap["CAP"] = &Server::capCmd;
 	cmdMap["PING"] = &Server::pingCmd;
+	cmdMap["JOIN"] = &Server::joinCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
-	if (cmdMap.count(command.substr(0, spacePos)))
-		(this->*cmdMap[command.substr(0, spacePos)])(clientFd, command);
+	if (cmdMap.count(command.substr(0, spacePos))) {
+		try {(this->*cmdMap[command.substr(0, spacePos)])(clientFd, command);}
+		catch (std::exception &e) {
+			std::cout << e.what() << std::endl;
+			sendToClient(clientFd, e.what());
+		}
+	}
 	if (clientIsRegistered(clientFd) && _userMap[clientFd]._allReadyConnect == false) {
 		std::string toSend = ":server 001 " + _userMap[clientFd]._nickname + " :Welcome to the IRC Network " + _userMap[clientFd]._nickname;
 		sendToClient(clientFd, toSend);
@@ -40,7 +46,7 @@ void Server::userCmd(int clientFd, const std::string& command) {
 
 std::string Server::compareServOption(std::string option) {
 	std::vector<std::string> tmpArray = split(_serverOption, ' ');
-	std::vector<std::string> tmpArraybis = split (option, ' ');
+	std::vector<std::string> tmpArraybis = split(option, ' ');
 	std::string res;
 
 	for (size_t i = 0; i < tmpArray.size(); i++) {
@@ -65,4 +71,15 @@ void Server::capCmd(int clientFd, const std::string& command) {
 
 void Server::pingCmd(int clientFd, const std::string& command) {
 	sendToClient(clientFd, "PONG " + command.substr(5));
+}
+
+void Server::joinCmd(int clientFd, const std::string& command) {
+	std::vector<std::string> cmdVec = split(command, ' ');
+	if (cmdVec[1][0] != '#')
+		throw JoinFormatError();
+	std::string tmp = cmdVec[1].substr(1);
+	if (tmp.empty())
+		throw JoinFormatError();
+	_channelMap[tmp] = Channel(tmp);
+	_channelMap[tmp].addUser(_userMap[clientFd]._nickname, clientFd, true);
 }

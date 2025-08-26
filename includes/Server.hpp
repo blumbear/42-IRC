@@ -69,6 +69,7 @@ class Server {
 		std::string compareServOption(std::string);
 		void capCmd(int, const std::string&);
 		void pingCmd(int, const std::string&);
+		void joinCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 
@@ -84,6 +85,7 @@ class Server {
 		class UserCmdError: public std::exception {public :const char* what() const throw();};
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};
 		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
+		class JoinFormatError: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
 

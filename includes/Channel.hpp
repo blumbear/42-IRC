@@ -36,6 +36,7 @@ class Channel {
 		Channel();
 		Channel(std::string name);
 		~Channel();
+		Channel &operator=(const Channel &other);
 
 /* =========== Member Function =========== */
 
@@ -53,5 +54,8 @@ class Channel {
 
 		void addUser(std::string, int, bool);
 		void removedUser(std::string);
+
+		void setName(std::string name) {_name = name;}
+		std::string getName() {return _name;}
 };
 
