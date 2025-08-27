@@ -26,11 +26,16 @@ void Server::commandParse(const std::string& command, int clientFd) {
 }
 
 void Server::nickCmd(int clientFd, const std::string& command) {
-	_userMap[clientFd]._nickname = command.substr(command.find_first_of(' ') + 1);
-	if (_userMap[clientFd]._nickname.size() > 15) {
-		_userMap[clientFd]._nickname = "";
+	std::string nickname = command.substr(command.find_first_of(' ') + 1);
+	for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
+		std::cout << "-" << it->second._nickname <<  "-" <<std::endl;
+		if (it->second._nickname == nickname)
+			throw NickInUse();
+	}
+	if (nickname.size() > 15) {
 		throw NickTooLongError();
 	}
+	_userMap[clientFd]._nickname = nickname;
 }
 
 void Server::userCmd(int clientFd, const std::string& command) {

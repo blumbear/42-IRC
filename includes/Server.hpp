@@ -85,6 +85,7 @@ class Server {
 
 		class UserCmdError: public std::exception {public :const char* what() const throw();};
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};
+		class NickInUse: public std::exception {public :const char* what() const throw();};
 		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
 		class JoinFormatError: public std::exception {public :const char* what() const throw();};
 		class PrivmsgFormatError: public std::exception {public :const char* what() const throw();};
