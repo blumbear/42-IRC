@@ -32,6 +32,8 @@
 
 /* =================== Env Struct =================== */
 
+class Channel;
+
 struct clientId {
 	std::string _username;
 	std::string _realname;

@@ -108,7 +108,7 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 		throw CmdNeedMoreParam();
 	if (_channelMap.count(tmp) == 0)
 		_channelMap[tmp] = Channel(tmp);
-	_channelMap[tmp].addUser(_userMap[clientFd]._nickname, clientFd, true);
+	_channelMap[tmp].addUser(_userMap[clientFd], clientFd, true);
 }
 
 // void Server::privmsgCmd(int clientFd, const std::string& command) {
@@ -117,7 +117,19 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 // 		throw PrivmsgFormatError();
 // 	std::string cmd = command.substr(0, pos);
 // 	size_t tmpPos = cmd.find_first_of(' ');
+// 	if (tmpPos == std::string::npos)
+// 		throw PrivmsgFormatError();
 // 	std::string tmp = cmd.substr(tmpPos + 1);
-// 	if (tmp[0] == '#')
-// 		_channelMap[tmp.substr(1)].sendMessageToChannelUser(_userMap[clientFd]._nickname + "" + command.substr(pos + 1));
+// 	if (tmp[0] == '#') {
+// 		size_t tmpP = cmd.find_first_of(' ');
+// 		if (tmpP == std::string::npos)
+// 			tmpP = pos;
+// 		if (_channelMap.count(tmp.substr(1, tmpP)))
+// 			_channelMap[tmp.substr(1, tmpP)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd]);
+// 	} else {
+// 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
+// 			if (it->second._nickname == tmp)
+// 				sendToClient(it->first, "PRIVMSG :" + _userMap[clientFd]._nickname + " :" + command.substr(pos + 1));
+// 		}
+// 	}
 // }
