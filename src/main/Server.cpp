@@ -85,7 +85,7 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 	if (bytesRead > 0) {
 		buffer[bytesRead] = '\0'; // Null-terminate
 		std::string command(buffer);
-		std::cout << fds[i].fd << " \033[35mSend \033[0m: "<< command;
+		std::cout << fds[i].fd << " \033[35mSend \033[0m:"<< command;
 		if (std::count(command.begin(), command.end(), '\n') > 1) {
 			std::vector<std::string> darray = split(command, '\n');
 			for (std::vector<std::string>::iterator it = darray.begin(); it != darray.end(); ++it) {

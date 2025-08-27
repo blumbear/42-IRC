@@ -8,7 +8,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["CAP"] = &Server::capCmd;
 	cmdMap["PING"] = &Server::pingCmd;
 	cmdMap["JOIN"] = &Server::joinCmd;
-	// cmdMap["PRIVMSG"] = &Server::privmsgCmd;
+	cmdMap["PRIVMSG"] = &Server::privmsgCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -111,25 +111,27 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 	_channelMap[tmp].addUser(_userMap[clientFd], clientFd, true);
 }
 
-// void Server::privmsgCmd(int clientFd, const std::string& command) {
-// 	size_t pos = command.find_first_of(':');
-// 	if (pos == std::string::npos)
-// 		throw PrivmsgFormatError();
-// 	std::string cmd = command.substr(0, pos);
-// 	size_t tmpPos = cmd.find_first_of(' ');
-// 	if (tmpPos == std::string::npos)
-// 		throw PrivmsgFormatError();
-// 	std::string tmp = cmd.substr(tmpPos + 1);
-// 	if (tmp[0] == '#') {
-// 		size_t tmpP = cmd.find_first_of(' ');
-// 		if (tmpP == std::string::npos)
-// 			tmpP = pos;
-// 		if (_channelMap.count(tmp.substr(1, tmpP)))
-// 			_channelMap[tmp.substr(1, tmpP)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd]);
-// 	} else {
-// 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
-// 			if (it->second._nickname == tmp)
-// 				sendToClient(it->first, "PRIVMSG :" + _userMap[clientFd]._nickname + " :" + command.substr(pos + 1));
-// 		}
-// 	}
-// }
+void Server::privmsgCmd(int clientFd, const std::string& command) {
+	std::cout << "CHERE\n";
+	size_t pos = command.find_first_of(':');
+	if (pos == std::string::npos)
+		throw PrivmsgFormatError();
+	std::string cmd = command.substr(0, pos);
+	size_t tmpPos = cmd.find_first_of(' ');
+	if (tmpPos == std::string::npos)
+		throw PrivmsgFormatError();
+	std::string tmp = cmd.substr(tmpPos + 1);
+	if (tmp[0] == '#') {
+		size_t tmpP = tmp.find_first_of(' ');
+		if (tmpP == std::string::npos)
+			tmpP = tmp.size();
+		if (_channelMap.count(tmp.substr(1, tmpP - 1)))
+			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd]);
+		else throw ChannelNotFound();
+	} else {
+		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
+			if (it->second._nickname == tmp)
+				sendToClient(it->first, "PRIVMSG :" + _userMap[clientFd]._nickname + " :" + command.substr(pos + 1));
+		}
+	}
+}
