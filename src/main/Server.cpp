@@ -91,12 +91,18 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 			for (std::vector<std::string>::iterator it = darray.begin(); it != darray.end(); ++it) {
 				strip_crlf(*it);
 				try {commandParse((*it), fds[i].fd);}
-				catch (std::exception &e) {std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;}
+				catch (std::exception &e) {
+					std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
+					sendToClient(fds[i].fd, e.what());
+				}
 			}
 		}
 		else {
 			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
-			catch (std::exception &e) {std::cout << e.what() << std::endl;}
+			catch (std::exception &e) {
+				std::cout << "\033[31mError\033[0m :"<<  e.what() << std::endl;
+				sendToClient(fds[i].fd, e.what());
+			}
 		}
 	}
 	else if (bytesRead == 0) {
