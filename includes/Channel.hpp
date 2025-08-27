@@ -59,6 +59,7 @@ class Channel {
 
 		void addUser(clientId, int, bool);
 		void removeUser(clientId);
+		void removeUser(clientId, std::string);
 
 		void setName(std::string name) {_name = name;}
 		std::string getName() {return _name;}

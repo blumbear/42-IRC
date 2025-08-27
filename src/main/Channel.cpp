@@ -83,3 +83,9 @@ void Channel::removeUser(clientId data) {
 	const std::string toSend(data._nickname + " quit the channel.");
 	sendMessageToChannelUser(toSend, data, "PART");
 }
+
+void Channel::removeUser(clientId data, std::string msg) {
+	_userMap.erase(data._nickname);
+	const std::string toSend(msg);
+	sendMessageToChannelUser(toSend, data, "PART");
+}
