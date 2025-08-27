@@ -22,6 +22,8 @@ const char* Server::PollError::what() const throw() {return ("Poll failed to rea
 
 const char* Server::UserCmdError::what() const throw() {return ("USER command wrong arguments.");}
 
+const char* Server::AlreadyRegistered::what() const throw() {return ("462 ERR_ALREADYREGISTRED");}
+
 const char* Server::NoPasswordNeeded::what() const throw() {return ("No password is needed.");}
 
 const char* Server::WrongPassword::what() const throw() {return ("Password is incorrect.");}
