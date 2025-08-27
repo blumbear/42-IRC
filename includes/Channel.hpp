@@ -54,11 +54,11 @@ class Channel {
 		void addPassword(std::string);
 		void addUserLimit(unsigned int);
 
-		void sendMessageToChannelUser(std::string, clientId);
+		void sendMessageToChannelUser(std::string, clientId, std::string);
 		void printChannelUser();
 
 		void addUser(clientId, int, bool);
-		void removedUser(std::string);
+		void removeUser(clientId);
 
 		void setName(std::string name) {_name = name;}
 		std::string getName() {return _name;}

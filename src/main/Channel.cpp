@@ -53,8 +53,8 @@ void Channel::addPassword(std::string newPassword) {
 void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
 
 
-void Channel::sendMessageToChannelUser(std::string msg, clientId cData) {
-	std::string toSend = ":" + cData._nickname + '!' + cData._username + "@tom PRIVMSG #" + _name + " :"+ msg + "\r\n";
+void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd) {
+	std::string toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + " :"+ msg + "\r\n";
 	std::cout << "\033[36mSent in " << _name << "\033[0m :" << toSend;
 	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
 		if (it->first != cData._nickname)
@@ -75,7 +75,11 @@ void Channel::addUser(clientId data, int clientFd, bool op) {
 	newclientInfo.isOp = op;
 	_userMap[data._nickname] = newclientInfo;
 	const std::string toSend(data._nickname + " join the channel.");
-	sendMessageToChannelUser(toSend, data);
+	sendMessageToChannelUser(toSend, data, "JOIN");
 }
 
-void Channel::removedUser(std::string name) {_userMap.erase(name);}
+void Channel::removeUser(clientId data) {
+	_userMap.erase(data._nickname);
+	const std::string toSend(data._nickname + " quit the channel.");
+	sendMessageToChannelUser(toSend, data, "PART");
+}

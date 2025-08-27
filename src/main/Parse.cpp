@@ -9,6 +9,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["PING"] = &Server::pingCmd;
 	cmdMap["JOIN"] = &Server::joinCmd;
 	cmdMap["PRIVMSG"] = &Server::privmsgCmd;
+	cmdMap["PART"] = &Server::partCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -112,7 +113,6 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 }
 
 void Server::privmsgCmd(int clientFd, const std::string& command) {
-	std::cout << "CHERE\n";
 	size_t pos = command.find_first_of(':');
 	if (pos == std::string::npos)
 		throw PrivmsgFormatError();
@@ -126,7 +126,7 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		if (tmpP == std::string::npos)
 			tmpP = tmp.size();
 		if (_channelMap.count(tmp.substr(1, tmpP - 1)))
-			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd]);
+			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd], "PRIVMSG");
 		else throw ChannelNotFound();
 	} else {
 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
@@ -134,4 +134,18 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 				sendToClient(it->first, "PRIVMSG :" + _userMap[clientFd]._nickname + " :" + command.substr(pos + 1));
 		}
 	}
+}
+
+void Server::partCmd(int clientFd, const std::string& command) {
+	std::vector<std::string> cmdVec = split(command, ' ');
+	if (cmdVec.size() < 2)
+		throw CmdNeedMoreParam();
+	else if (cmdVec[1][0] != '#')
+		throw JoinFormatError();
+	std::string tmp = cmdVec[1].substr(1);
+	if (tmp.empty())
+		throw CmdNeedMoreParam();
+	if (_channelMap.count(tmp) == 0)
+		_channelMap[tmp] = Channel(tmp);
+	_channelMap[tmp].removeUser(_userMap[clientFd]);
 }
