@@ -10,6 +10,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["JOIN"] = &Server::joinCmd;
 	cmdMap["PRIVMSG"] = &Server::privmsgCmd;
 	cmdMap["PART"] = &Server::partCmd;
+	// cmdMap["KICK"] = &Server::kickCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -126,7 +127,7 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		if (tmpP == std::string::npos)
 			tmpP = tmp.size();
 		if (_channelMap.count(tmp.substr(1, tmpP - 1)))
-			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd], "PRIVMSG");
+			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd], "PRIVMSG	");
 		else throw ChannelNotFound();
 	} else {
 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
@@ -147,5 +148,13 @@ void Server::partCmd(int clientFd, const std::string& command) {
 		throw CmdNeedMoreParam();
 	if (_channelMap.count(tmp) == 0)
 		_channelMap[tmp] = Channel(tmp);
-	_channelMap[tmp].removeUser(_userMap[clientFd]);
+	size_t dotpos = command.find_first_of(':');
+	if (dotpos != std::string::npos)
+		_channelMap[tmp].removeUser(_userMap[clientFd], command.substr(dotpos + 1));
+	else
+		_channelMap[tmp].removeUser(_userMap[clientFd]);
 }
+
+// void Server::kickCmd(int clientFd, const std::string& command) {
+
+// }
