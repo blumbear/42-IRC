@@ -108,9 +108,12 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 	std::string tmp = cmdVec[1].substr(1);
 	if (tmp.empty())
 		throw CmdNeedMoreParam();
-	if (_channelMap.count(tmp) == 0)
+	if (_channelMap.count(tmp) == 0) {
 		_channelMap[tmp] = Channel(tmp);
-	_channelMap[tmp].addUser(_userMap[clientFd], clientFd, true);
+		_channelMap[tmp].addUser(_userMap[clientFd], clientFd, true);
+	}
+	else if (_channelMap[tmp].getPassword() == "")
+		_channelMap[tmp].addUser(_userMap[clientFd], clientFd, false);
 }
 
 void Server::privmsgCmd(int clientFd, const std::string& command) {
@@ -156,5 +159,5 @@ void Server::partCmd(int clientFd, const std::string& command) {
 }
 
 // void Server::kickCmd(int clientFd, const std::string& command) {
-
+	
 // }

@@ -63,5 +63,6 @@ class Channel {
 
 		void setName(std::string name) {_name = name;}
 		std::string getName() {return _name;}
+		std::string getPassword() {return _channelMod.password;}
 };
 
