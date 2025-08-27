@@ -54,9 +54,15 @@ void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
 
 void Channel::sendMessageToChannelUser(std::string msg) {
 	std::string toSend = msg + "\r\n";
+	std::cout << "Sent in " << _name << " :" << toSend;
 	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
-		std::string toSend = msg + "\r\n";
 		send(it->second.clientFd, toSend.c_str(), toSend.size(), 0);
+	}
+}
+
+void Channel::printChannelUser() {
+	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
+		std::cout << it->first << std::endl;
 	}
 }
 
@@ -66,6 +72,8 @@ void Channel::addUser(std::string name, int clientFd, bool op) {
 	newclientInfo.clientFd = clientFd;
 	newclientInfo.isOp = op;
 	_userMap[name] = newclientInfo;
+	const std::string toSend(name + " join the channel.");
+	sendMessageToChannelUser(toSend);
 }
 
 void Channel::removedUser(std::string name) {_userMap.erase(name);}
