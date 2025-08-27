@@ -96,6 +96,7 @@ class Server {
 		class JoinFormatError: public std::exception {public :const char* what() const throw();};
 		class PrivmsgFormatError: public std::exception {public :const char* what() const throw();};
 		class CmdNeedMoreParam: public std::exception {public :const char* what() const throw();};
+		class ChannelNotFound: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
 

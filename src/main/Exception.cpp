@@ -40,6 +40,8 @@ const char* Server::PrivmsgFormatError::what() const throw() {return (":412 ERR_
 
 const char* Server::CmdNeedMoreParam::what() const throw() {return (":461 ERR_NEEDMOREPARAMS");}
 
+const char* Server::ChannelNotFound::what() const throw() {return (":The channel is not found.");}
+
 /* =========== Channel's Exception Handler =========== */
 
 const char* Channel::missingName::what() const throw() {return ("Missing name to create a channel.");}
