@@ -58,15 +58,15 @@ void Server::newClient(std::vector<pollfd>& fds) {
 		clientId test;
 		test._alreadyConnected = false;
 		_userMap[client_fd] = test;
-		std::cout << client_fd << " Is connected" << std::endl;
+		std::cout << client_fd << " \033[32mIs connected\033[0m" << std::endl;
 	}
 	else
-		std::cerr << "Client failed to connect" << std::endl;
+		std::cerr << "\033[31mClient failed to connect\033[0m" << std::endl;
 }
 
 void Server::sendToClient(int clientFd, const std::string& msg) {
 	std::string toSend = msg + "\r\n";
-	std::cout << "Serv Sent :" << toSend;
+	std::cout << "\033[34mServ Sent\033[0m :" << toSend;
 	send(clientFd, toSend.c_str(), toSend.size(), 0);
 }
 
@@ -85,13 +85,13 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 	if (bytesRead > 0) {
 		buffer[bytesRead] = '\0'; // Null-terminate
 		std::string command(buffer);
-		std::cout << fds[i].fd << " Send : "<< command;
+		std::cout << fds[i].fd << " \033[35mSend \033[0m: "<< command;
 		if (std::count(command.begin(), command.end(), '\n') > 1) {
 			std::vector<std::string> darray = split(command, '\n');
 			for (std::vector<std::string>::iterator it = darray.begin(); it != darray.end(); ++it) {
 				strip_crlf(*it);
 				try {commandParse((*it), fds[i].fd);}
-				catch (std::exception &e) {std::cout << e.what() << std::endl;}
+				catch (std::exception &e) {std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;}
 			}
 		}
 		else {
@@ -100,11 +100,11 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 		}
 	}
 	else if (bytesRead == 0) {
-		std::cout << fds[i].fd << " Disconnected" << std::endl;
+		std::cout << fds[i].fd << "\033[32m Disconnected\033[0m" << std::endl;
 		close(fds[i].fd);
 		fds.erase(fds.begin() + i);
 	} else {
-		std::cerr << "Error with the client : " << fds[i].fd << std::endl;
+		std::cerr << "\033[31mError with the client\033[0m : " << fds[i].fd << std::endl;
 	}
 }
 

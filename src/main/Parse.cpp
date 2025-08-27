@@ -14,7 +14,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	if (cmdMap.count(command.substr(0, spacePos))) {
 		try {(this->*cmdMap[command.substr(0, spacePos)])(clientFd, command);}
 		catch (std::exception &e) {
-			std::cout << e.what() << std::endl;
+			std::cout << "\033[31m" << e.what() << "\033[0m" << std::endl;
 			sendToClient(clientFd, e.what());
 		}
 	}
@@ -75,7 +75,9 @@ void Server::pingCmd(int clientFd, const std::string& command) {
 
 void Server::joinCmd(int clientFd, const std::string& command) {
 	std::vector<std::string> cmdVec = split(command, ' ');
-	if (cmdVec[1][0] != '#')
+	if (cmdVec.size() < 2)
+		throw JoinFormatError();
+	else if (cmdVec[1][0] != '#')
 		throw JoinFormatError();
 	std::string tmp = cmdVec[1].substr(1);
 	if (tmp.empty())
