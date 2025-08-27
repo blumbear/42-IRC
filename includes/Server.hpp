@@ -36,6 +36,7 @@ struct clientId {
 	std::string _username;
 	std::string _realname;
 	std::string _nickname;
+	bool _pass;
 	bool _alreadyConnected;
 };
 
@@ -59,11 +60,11 @@ class Server {
 		void handleCommand(std::vector<pollfd> fds, int i);
 		void displayPrompt();
 		void sendToClient(int client, const std::string& msg);
-		void sendConnectionMsg(int clientFd);
 		void getIpAddress();
 		void sendPingToAllClients();
 		
 		void commandParse(const std::string& command, int clientFd);
+		void passCmd(int, const std::string&);
 		void nickCmd(int, const std::string&);
 		void userCmd(int, const std::string&);
 		std::string compareServOption(std::string);
@@ -84,11 +85,14 @@ class Server {
 		class PollError: public std::exception {public :const char* what() const throw();};
 
 		class UserCmdError: public std::exception {public :const char* what() const throw();};
+		class NoPasswordNeeded: public std::exception {public :const char* what() const throw();};
+		class WrongPassword: public std::exception {public :const char* what() const throw();};
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};
 		class NickInUse: public std::exception {public :const char* what() const throw();};
 		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
 		class JoinFormatError: public std::exception {public :const char* what() const throw();};
 		class PrivmsgFormatError: public std::exception {public :const char* what() const throw();};
+		class CmdNeedMoreParam: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
 

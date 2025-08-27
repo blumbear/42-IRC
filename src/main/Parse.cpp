@@ -2,6 +2,7 @@
 
 void Server::commandParse(const std::string& command, int clientFd) {
 	std::map<std::string, void (Server::*)(int, const std::string &)> cmdMap;
+	cmdMap["PASS"] = &Server::passCmd;
 	cmdMap["NICK"] = &Server::nickCmd;
 	cmdMap["USER"] = &Server::userCmd;
 	cmdMap["CAP"] = &Server::capCmd;
@@ -25,10 +26,23 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	}
 }
 
+void Server::passCmd(int clientFd, const std::string& command) {
+	if (_password == "")
+		throw NoPasswordNeeded();
+	if (_userMap[clientFd]._pass == true)
+		return ;
+	size_t spacePos = command.find_first_of(' ') + 1;
+	if (spacePos == std::string::npos)
+		throw CmdNeedMoreParam();
+	std::string password = command.substr(spacePos);
+	if (password != _password)
+		throw WrongPassword();
+	_userMap[clientFd]._pass = true;
+}
+
 void Server::nickCmd(int clientFd, const std::string& command) {
 	std::string nickname = command.substr(command.find_first_of(' ') + 1);
 	for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
-		std::cout << "-" << it->second._nickname <<  "-" <<std::endl;
 		if (it->second._nickname == nickname)
 			throw NickInUse();
 	}
@@ -45,7 +59,7 @@ void Server::userCmd(int clientFd, const std::string& command) {
 	_userMap[clientFd]._realname = command.substr(doubleDotPos + 1);
 	std::vector<std::string> tmpArray = split(command.substr(0, doubleDotPos), ' ');
 	if (tmpArray.size() != 4)
-		throw UserCmdError();
+		throw CmdNeedMoreParam();
 	
 	_userMap[clientFd]._username = tmpArray[1];
 }
@@ -81,12 +95,12 @@ void Server::pingCmd(int clientFd, const std::string& command) {
 void Server::joinCmd(int clientFd, const std::string& command) {
 	std::vector<std::string> cmdVec = split(command, ' ');
 	if (cmdVec.size() < 2)
-		throw JoinFormatError();
+		throw CmdNeedMoreParam();
 	else if (cmdVec[1][0] != '#')
 		throw JoinFormatError();
 	std::string tmp = cmdVec[1].substr(1);
 	if (tmp.empty())
-		throw JoinFormatError();
+		throw CmdNeedMoreParam();
 	if (_channelMap.count(tmp) == 0)
 		_channelMap[tmp] = Channel(tmp);
 	_channelMap[tmp].addUser(_userMap[clientFd]._nickname, clientFd, true);
