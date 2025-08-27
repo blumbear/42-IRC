@@ -85,6 +85,7 @@ class Server {
 		class PollError: public std::exception {public :const char* what() const throw();};
 
 		class UserCmdError: public std::exception {public :const char* what() const throw();};
+		class AlreadyRegistered: public std::exception {public :const char* what() const throw();};
 		class NoPasswordNeeded: public std::exception {public :const char* what() const throw();};
 		class WrongPassword: public std::exception {public :const char* what() const throw();};
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};

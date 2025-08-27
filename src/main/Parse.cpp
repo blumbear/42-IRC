@@ -19,6 +19,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 			sendToClient(clientFd, e.what());
 		}
 	}
+	else throw UnknownCmdError();
 	if (clientIsRegistered(clientFd) && _userMap[clientFd]._alreadyConnected == false) {
 		std::string toSend = ":server 001 " + _userMap[clientFd]._nickname + " :Welcome to the IRC Network " + _userMap[clientFd]._nickname;
 		sendToClient(clientFd, toSend);
@@ -27,6 +28,8 @@ void Server::commandParse(const std::string& command, int clientFd) {
 }
 
 void Server::passCmd(int clientFd, const std::string& command) {
+	if (_userMap[clientFd]._alreadyConnected == true)
+		throw AlreadyRegistered();
 	if (_password == "")
 		throw NoPasswordNeeded();
 	if (_userMap[clientFd]._pass == true)
@@ -53,6 +56,8 @@ void Server::nickCmd(int clientFd, const std::string& command) {
 }
 
 void Server::userCmd(int clientFd, const std::string& command) {
+	if (_userMap[clientFd]._alreadyConnected == true)
+		throw AlreadyRegistered();
 	size_t doubleDotPos = command.find_first_of(':');
 	if (doubleDotPos == std::string::npos)
 		throw UserCmdError();
@@ -104,7 +109,6 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 	if (_channelMap.count(tmp) == 0)
 		_channelMap[tmp] = Channel(tmp);
 	_channelMap[tmp].addUser(_userMap[clientFd]._nickname, clientFd, true);
-	_channelMap[tmp].printChannelUser();
 }
 
 // void Server::privmsgCmd(int clientFd, const std::string& command) {

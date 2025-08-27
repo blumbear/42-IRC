@@ -53,7 +53,7 @@ void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
 
 
 void Channel::sendMessageToChannelUser(std::string msg) {
-	std::string toSend = msg + "\r\n";
+	std::string toSend = "#" + _name + " :"+ msg + "\r\n";
 	std::cout << "\033[36mSent in " << _name << "\033[0m :" << toSend;
 	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
 		send(it->second.clientFd, toSend.c_str(), toSend.size(), 0);
