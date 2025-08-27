@@ -36,7 +36,7 @@ struct clientId {
 	std::string _username;
 	std::string _realname;
 	std::string _nickname;
-	bool _allReadyConnect;
+	bool _alreadyConnected;
 };
 
 class Server {
@@ -70,6 +70,7 @@ class Server {
 		void capCmd(int, const std::string&);
 		void pingCmd(int, const std::string&);
 		void joinCmd(int, const std::string&);
+		void privmsgCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 
@@ -86,6 +87,7 @@ class Server {
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};
 		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
 		class JoinFormatError: public std::exception {public :const char* what() const throw();};
+		class PrivmsgFormatError: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
 

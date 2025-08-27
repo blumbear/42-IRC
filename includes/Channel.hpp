@@ -51,6 +51,7 @@ class Channel {
 		void addUserLimit(unsigned int);
 
 		void sendMessageToChannelUser(std::string);
+		void printChannelUser();
 
 		void addUser(std::string, int, bool);
 		void removedUser(std::string);
