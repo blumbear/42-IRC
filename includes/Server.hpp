@@ -75,6 +75,7 @@ class Server {
 		void joinCmd(int, const std::string&);
 		void privmsgCmd(int, const std::string&);
 		void partCmd(int, const std::string&);
+		// void kickCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 
