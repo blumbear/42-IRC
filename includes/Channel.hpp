@@ -5,6 +5,10 @@
 #include <map>
 #include <sys/socket.h>
 
+#include "Server.hpp"
+
+struct clientId;
+
 struct channelMod {
 	bool inviteOnly;
 	bool topicForOp;
@@ -50,10 +54,10 @@ class Channel {
 		void addPassword(std::string);
 		void addUserLimit(unsigned int);
 
-		void sendMessageToChannelUser(std::string);
+		void sendMessageToChannelUser(std::string, clientId);
 		void printChannelUser();
 
-		void addUser(std::string, int, bool);
+		void addUser(clientId, int, bool);
 		void removedUser(std::string);
 
 		void setName(std::string name) {_name = name;}

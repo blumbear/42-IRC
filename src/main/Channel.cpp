@@ -9,6 +9,7 @@ Channel::Channel(std::string name) : _name(name) {
 	_channelMod.topicForOp = false;
 	_channelMod.password = "";
 	_channelMod.userLimit = 0;
+	std::cout << "Channel " << _name << " is create." << std::endl;
 }
 
 Channel::~Channel() {}
@@ -52,8 +53,8 @@ void Channel::addPassword(std::string newPassword) {
 void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
 
 
-void Channel::sendMessageToChannelUser(std::string msg) {
-	std::string toSend = "#" + _name + " :"+ msg + "\r\n";
+void Channel::sendMessageToChannelUser(std::string msg, clientId cData) {
+	std::string toSend = ":" + cData._nickname + '!' + cData._username + "@tom PRIVMSG " + _name + " :"+ msg + "\r\n";
 	std::cout << "\033[36mSent in " << _name << "\033[0m :" << toSend;
 	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
 		send(it->second.clientFd, toSend.c_str(), toSend.size(), 0);
@@ -67,13 +68,13 @@ void Channel::printChannelUser() {
 }
 
 
-void Channel::addUser(std::string name, int clientFd, bool op) {
+void Channel::addUser(clientId data, int clientFd, bool op) {
 	clientInfo newclientInfo;
 	newclientInfo.clientFd = clientFd;
 	newclientInfo.isOp = op;
-	_userMap[name] = newclientInfo;
-	const std::string toSend(name + " join the channel.");
-	sendMessageToChannelUser(toSend);
+	_userMap[data._nickname] = newclientInfo;
+	const std::string toSend(data._nickname + " join the channel.");
+	sendMessageToChannelUser(toSend, data);
 }
 
 void Channel::removedUser(std::string name) {_userMap.erase(name);}
