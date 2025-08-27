@@ -26,7 +26,9 @@ const char* Server::NickTooLongError::what() const throw() {return ("Nick is too
 
 const char* Server::UnknownCmdError::what() const throw() {return ("Unknown command or missing arguments.");}
 
-const char* Server::JoinFormatError::what() const throw() {return (":server 461 <nick> JOIN :Not enough parameters");}
+const char* Server::JoinFormatError::what() const throw() {return (":461 ERR_NEEDMOREPARAMS");}
+
+const char* Server::PrivmsgFormatError::what() const throw() {return (":412 ERR_NOTEXTTOSEND");}
 
 /* =========== Channel's Exception Handler =========== */
 
