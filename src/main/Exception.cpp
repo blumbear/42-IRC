@@ -22,6 +22,10 @@ const char* Server::PollError::what() const throw() {return ("Poll failed to rea
 
 const char* Server::UserCmdError::what() const throw() {return ("USER command wrong arguments.");}
 
+const char* Server::NoPasswordNeeded::what() const throw() {return ("No password is needed.");}
+
+const char* Server::WrongPassword::what() const throw() {return ("Password is incorrect.");}
+
 const char* Server::NickTooLongError::what() const throw() {return ("Nick is too long.");}
 
 const char* Server::NickInUse::what() const throw() {return (":433 ERR_NICKNAMEINUSE");}
@@ -31,6 +35,8 @@ const char* Server::UnknownCmdError::what() const throw() {return ("Unknown comm
 const char* Server::JoinFormatError::what() const throw() {return (":461 ERR_NEEDMOREPARAMS");}
 
 const char* Server::PrivmsgFormatError::what() const throw() {return (":412 ERR_NOTEXTTOSEND");}
+
+const char* Server::CmdNeedMoreParam::what() const throw() {return (":461 ERR_NEEDMOREPARAMS");}
 
 /* =========== Channel's Exception Handler =========== */
 
