@@ -24,6 +24,8 @@ const char* Server::UserCmdError::what() const throw() {return ("USER command wr
 
 const char* Server::NickTooLongError::what() const throw() {return ("Nick is too long.");}
 
+const char* Server::NickInUse::what() const throw() {return (":433 ERR_NICKNAMEINUSE");}
+
 const char* Server::UnknownCmdError::what() const throw() {return ("Unknown command or missing arguments.");}
 
 const char* Server::JoinFormatError::what() const throw() {return (":461 ERR_NEEDMOREPARAMS");}
