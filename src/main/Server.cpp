@@ -5,7 +5,7 @@
 Server::Server() {throw (ArgError());}
 
 Server::Server(std::string password, uint16_t port) :
-_password(password), _port(port), _serverOption("mutli-prefix server-time invite-notify "), _serverName("42_IRC") {initSocket();}
+_password(password), _port(port), _serverOption("mutli-prefix server-time invite-notify"), _serverName("42_IRC") {initSocket();}
 
 Server::~Server() {}
 
@@ -49,15 +49,15 @@ void Server::initSocket() {
 }
 
 void Server::newClient(std::vector<pollfd>& fds) {
-	// Nouvelle connexion
 	struct sockaddr_in client_addr;
 	socklen_t addr_len = sizeof(client_addr);
 	int client_fd = accept(_serverFd, (struct sockaddr*)&client_addr, &addr_len);
 	if (client_fd >= 0) {
 		pollfd tmp = {client_fd, POLLIN, 0};
 		fds.push_back(tmp);
-		_userMap[client_fd];
-		_userMap[client_fd]._allReadyConnect = false;
+		clientId test;
+		test._alreadyConnected = false;
+		_userMap[client_fd] = test;
 		std::cout << client_fd << " Is connected" << std::endl;
 	}
 	else
@@ -66,18 +66,17 @@ void Server::newClient(std::vector<pollfd>& fds) {
 
 void Server::sendToClient(int clientFd, const std::string& msg) {
 	std::string toSend = msg + "\r\n";
-	std::cout << "send :" << toSend;
+	std::cout << "Serv Sent :" << toSend;
 	send(clientFd, toSend.c_str(), toSend.size(), 0);
 }
 
-void Server::sendConnectionMsg(int clientFd) {
-	std::string welcomeMsg = ":";
-	welcomeMsg = welcomeMsg + _serverName + " 001 " + _userMap[clientFd]._nickname + " :Welcome to the Internet Relay Network " +  _userMap[clientFd]._nickname + "!" +  _userMap[clientFd]._username + "@" + _serverIp;
-	sendToClient(clientFd, welcomeMsg);
+bool Server::clientIsRegistered(int clientFd) {
+	return (_userMap[clientFd]._username != "" && _userMap[clientFd]._nickname != "" && _userMap[clientFd]._realname != "");
 }
 
-bool Server::clientIsRegistered(int clientFd) {
-	return (_userMap[clientFd]._username != "" && _userMap[clientFd]._nickname != "");
+static void strip_crlf(std::string &s) {
+	if (!s.empty() && s[s.size()-1] == '\n') s.erase(s.size()-1);
+	if (!s.empty() && s[s.size()-1] == '\r') s.erase(s.size()-1);
 }
 
 void Server::handleCommand(std::vector<pollfd> fds, int i) {
@@ -86,16 +85,19 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 	if (bytesRead > 0) {
 		buffer[bytesRead] = '\0'; // Null-terminate
 		std::string command(buffer);
+		std::cout << fds[i].fd << " Send : "<< command;
 		if (std::count(command.begin(), command.end(), '\n') > 1) {
 			std::vector<std::string> darray = split(command, '\n');
-			for (size_t i = 0; i < darray.size(); i++) {
-				try {commandParse(darray[i], fds[i].fd);}
+			for (std::vector<std::string>::iterator it = darray.begin(); it != darray.end(); ++it) {
+				strip_crlf(*it);
+				try {commandParse((*it), fds[i].fd);}
 				catch (std::exception &e) {std::cout << e.what() << std::endl;}
 			}
 		}
-		std::cout << fds[i].fd << " Send : "<< command;
-		try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
-		catch (std::exception &e) {std::cout << e.what() << std::endl;}
+		else {
+			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
+			catch (std::exception &e) {std::cout << e.what() << std::endl;}
+		}
 	}
 	else if (bytesRead == 0) {
 		std::cout << fds[i].fd << " Disconnected" << std::endl;
@@ -141,7 +143,6 @@ void Server::displayPrompt() {
 	}
 }
 
-// Ajoutez cette fonction à votre classe Server
 void Server::sendPingToAllClients() {
 	std::cout << "ping client" << std::endl;
 	for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
@@ -157,15 +158,7 @@ void Server::pollLoop() {
 	pollfd tmp = {_serverFd, POLLIN, 0};
 	fds.push_back(tmp);  // Server to check with accept()
 	displayPrompt();
-	time_t lastPing = time(NULL);
 	while (true) {
-
-		// Envoi du PING toutes les 60 secondes
-		time_t now = time(NULL);
-		if (now - lastPing >= 60) {
-			sendPingToAllClients();
-			lastPing = now;
-		}
 
 		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
 		if (activity < 0)

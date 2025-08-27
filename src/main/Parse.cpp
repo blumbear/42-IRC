@@ -7,6 +7,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["CAP"] = &Server::capCmd;
 	cmdMap["PING"] = &Server::pingCmd;
 	cmdMap["JOIN"] = &Server::joinCmd;
+	// cmdMap["PRIVMSG"] = &Server::privmsgCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -17,15 +18,15 @@ void Server::commandParse(const std::string& command, int clientFd) {
 			sendToClient(clientFd, e.what());
 		}
 	}
-	if (clientIsRegistered(clientFd) && _userMap[clientFd]._allReadyConnect == false) {
+	if (clientIsRegistered(clientFd) && _userMap[clientFd]._alreadyConnected == false) {
 		std::string toSend = ":server 001 " + _userMap[clientFd]._nickname + " :Welcome to the IRC Network " + _userMap[clientFd]._nickname;
 		sendToClient(clientFd, toSend);
-		_userMap[clientFd]._allReadyConnect = true;
+		_userMap[clientFd]._alreadyConnected = true;
 	}
 }
 
 void Server::nickCmd(int clientFd, const std::string& command) {
-	_userMap[clientFd]._nickname = command.substr(0, command.find_first_of(' ') + 1);
+	_userMap[clientFd]._nickname = command.substr(command.find_first_of(' ') + 1);
 	if (_userMap[clientFd]._nickname.size() > 15) {
 		_userMap[clientFd]._nickname = "";
 		throw NickTooLongError();
@@ -51,8 +52,7 @@ std::string Server::compareServOption(std::string option) {
 
 	for (size_t i = 0; i < tmpArray.size(); i++) {
 		for (size_t j = 0; j < tmpArraybis.size(); j++)
-			if (tmpArray[i] == tmpArraybis[j])
-				if (res.find(tmpArray[i]) == std::string::npos) {
+			if (tmpArray[i] == tmpArraybis[j]) {
 					res.append(tmpArray[i]);
 					res.append(" ");
 				}
@@ -80,6 +80,19 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 	std::string tmp = cmdVec[1].substr(1);
 	if (tmp.empty())
 		throw JoinFormatError();
-	_channelMap[tmp] = Channel(tmp);
+	if (_channelMap.count(tmp) == 0)
+		_channelMap[tmp] = Channel(tmp);
 	_channelMap[tmp].addUser(_userMap[clientFd]._nickname, clientFd, true);
+	_channelMap[tmp].printChannelUser();
 }
+
+// void Server::privmsgCmd(int clientFd, const std::string& command) {
+// 	size_t pos = command.find_first_of(':');
+// 	if (pos == std::string::npos)
+// 		throw PrivmsgFormatError();
+// 	std::string cmd = command.substr(0, pos);
+// 	size_t tmpPos = cmd.find_first_of(' ');
+// 	std::string tmp = cmd.substr(tmpPos + 1);
+// 	if (tmp[0] == '#')
+// 		_channelMap[tmp.substr(1)].sendMessageToChannelUser(_userMap[clientFd]._nickname + "" + command.substr(pos + 1));
+// }
