@@ -75,30 +75,36 @@ class Server {
 		void joinCmd(int, const std::string&);
 		void privmsgCmd(int, const std::string&);
 		void partCmd(int, const std::string&);
-		// void kickCmd(int, const std::string&);
+		void kickCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
-
 		class UnknownError: public std::exception {public :const char* what() const throw();};
 		class ArgError: public std::exception {public :const char* what() const throw();};
 		class SocketError: public std::exception {public :const char* what() const throw();};
 		class BindError: public std::exception {public :const char* what() const throw();};
 		class FcntlError: public std::exception {public :const char* what() const throw();};
 		class ListenError: public std::exception {public :const char* what() const throw();};
-		class SetsockoptError: public std::exception {public :const char* what() const throw();};
+		class SetsockOptError: public std::exception {public :const char* what() const throw();};
 		class PollError: public std::exception {public :const char* what() const throw();};
 
 		class UserCmdError: public std::exception {public :const char* what() const throw();};
-		class AlreadyRegistered: public std::exception {public :const char* what() const throw();};
 		class NoPasswordNeeded: public std::exception {public :const char* what() const throw();};
 		class WrongPassword: public std::exception {public :const char* what() const throw();};
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};
-		class NickInUse: public std::exception {public :const char* what() const throw();};
 		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
 		class JoinFormatError: public std::exception {public :const char* what() const throw();};
-		class PrivmsgFormatError: public std::exception {public :const char* what() const throw();};
-		class CmdNeedMoreParam: public std::exception {public :const char* what() const throw();};
 		class ChannelNotFound: public std::exception {public :const char* what() const throw();};
+		class KickFormatError: public std::exception {public :const char* what() const throw();};
+
+		class NoSuchNick: public std::exception {public :const char* what() const throw();};
+		class NoSuchChannel: public std::exception {public :const char* what() const throw();};
+		class NoSuchOnServer: public std::exception {public :const char* what() const throw();};
+		class PrivmsgFormatError: public std::exception {public :const char* what() const throw();};
+		class NickInUse: public std::exception {public :const char* what() const throw();};
+		class NotOnChannel: public std::exception {public :const char* what() const throw();};
+		class CmdNeedMoreParam: public std::exception {public :const char* what() const throw();};
+		class AlreadyRegistered: public std::exception {public :const char* what() const throw();};
+		class ChanPrivNeeded: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
 
