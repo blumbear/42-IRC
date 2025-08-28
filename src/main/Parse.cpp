@@ -10,7 +10,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["JOIN"] = &Server::joinCmd;
 	cmdMap["PRIVMSG"] = &Server::privmsgCmd;
 	cmdMap["PART"] = &Server::partCmd;
-	// cmdMap["KICK"] = &Server::kickCmd;
+	cmdMap["KICK"] = &Server::kickCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -130,7 +130,7 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		if (tmpP == std::string::npos)
 			tmpP = tmp.size();
 		if (_channelMap.count(tmp.substr(1, tmpP - 1)))
-			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(command.substr(pos + 1), _userMap[clientFd], "PRIVMSG	");
+			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(" :" + command.substr(pos + 1), _userMap[clientFd], "PRIVMSG");
 		else throw ChannelNotFound();
 	} else {
 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
@@ -150,14 +150,51 @@ void Server::partCmd(int clientFd, const std::string& command) {
 	if (tmp.empty())
 		throw CmdNeedMoreParam();
 	if (_channelMap.count(tmp) == 0)
-		_channelMap[tmp] = Channel(tmp);
+		throw NoSuchChannel();
 	size_t dotpos = command.find_first_of(':');
-	if (dotpos != std::string::npos)
-		_channelMap[tmp].removeUser(_userMap[clientFd], command.substr(dotpos + 1));
-	else
-		_channelMap[tmp].removeUser(_userMap[clientFd]);
+	try {
+		if (dotpos != std::string::npos)
+			_channelMap[tmp].removeUser(_userMap[clientFd], command.substr(dotpos + 1));
+		else
+			_channelMap[tmp].removeUser(_userMap[clientFd]);
+	} catch (std::exception &e) {
+		std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
+		sendToClient(clientFd, e.what());
+	}
 }
 
-// void Server::kickCmd(int clientFd, const std::string& command) {
-	
-// }
+void Server::kickCmd(int clientFd, const std::string& command) {
+	size_t tmp = command.find_first_of(':');
+	std::string msg = "";
+	if (tmp != std::string::npos)
+		msg = command.substr(tmp + 1);
+	else
+		tmp = command.size() - 1;
+	size_t spacePos = command.find_first_of(' ');
+	if (spacePos == std::string::npos)
+		throw CmdNeedMoreParam();
+	std::string buffer = command.substr(spacePos + 1, tmp);
+	spacePos = buffer.find_first_of(' ');
+	if (spacePos == std::string::npos)
+		throw CmdNeedMoreParam();
+	if (buffer[0] != '#')
+		throw KickFormatError();
+	std::string channel = buffer.substr(1, spacePos - 1);
+	if (_channelMap.count(channel) == 0)
+		throw NoSuchChannel();
+	try {
+		if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
+			throw ChanPrivNeeded();
+		std::string userName = buffer.substr(spacePos + 1);
+		spacePos = userName.find_first_of(' ');
+		if (spacePos == std::string::npos)
+			spacePos = userName.find_first_of(':');
+		int userFd = _channelMap[channel].removeUser(userName.substr(0, spacePos));
+		sendToClient(userFd, "You have been kicked from " + channel + '.');
+		std::string kickMsg = command.substr(tmp + 1);
+		_channelMap[channel].sendMessageToChannelUser(' ' + userName.substr(0, spacePos) + " :" + (kickMsg == "" ? userName.substr(0, spacePos) + " has beed kicked.":kickMsg), _userMap[clientFd], "KICK");
+	} catch (std::exception &e) {
+		std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
+		sendToClient(clientFd, e.what());
+	}
+}

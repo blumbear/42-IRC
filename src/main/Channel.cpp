@@ -54,7 +54,7 @@ void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
 
 
 void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd) {
-	std::string toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + " :"+ msg + "\r\n";
+	std::string toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + msg + "\r\n";
 	std::cout << "\033[36mSent in " << _name << "\033[0m :" << toSend;
 	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
 		if (it->first != cData._nickname)
@@ -75,17 +75,38 @@ void Channel::addUser(clientId data, int clientFd, bool op) {
 	newclientInfo.isOp = op;
 	_userMap[data._nickname] = newclientInfo;
 	const std::string toSend(data._nickname + " join the channel.");
-	sendMessageToChannelUser(toSend, data, "JOIN");
+	sendMessageToChannelUser(" :" + toSend, data, "JOIN");
 }
 
 void Channel::removeUser(clientId data) {
+	if (_userMap.count(data._nickname) == 0)
+		throw Server::NotOnChannel();
 	_userMap.erase(data._nickname);
 	const std::string toSend(data._nickname + " quit the channel.");
-	sendMessageToChannelUser(toSend, data, "PART");
+	sendMessageToChannelUser(" :" + toSend, data, "PART");
 }
 
 void Channel::removeUser(clientId data, std::string msg) {
+	if (_userMap.count(data._nickname) == 0)
+		throw Server::NotOnChannel();
 	_userMap.erase(data._nickname);
 	const std::string toSend(msg);
-	sendMessageToChannelUser(toSend, data, "PART");
+	sendMessageToChannelUser(" :" + toSend, data, "PART");
+}
+
+int Channel::removeUser(std::string name) {
+	std::cout << "-" << name << "-" << std::endl;
+	if (_userMap.count(name) == 0)
+		throw Server::NotOnChannel();
+	int userFd = _userMap[name].clientFd;
+	_userMap.erase(name);
+	return userFd;
+}
+
+bool Channel::isOp(std::string name) {
+	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
+		if (it->first == name)
+			return it->second.isOp;
+	}
+	throw Server::NotOnChannel();
 }

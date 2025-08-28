@@ -28,7 +28,7 @@ void Server::initSocket() {
 	// SOL_SOCKET -> level of the option (here is it for general option)
 	// SO_REUSEADDR -> Socket Re use Address
 	if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-		throw (SetsockoptError());
+		throw (SetsockOptError());
 
 	// define the server's address
 	struct sockaddr_in address;
@@ -92,7 +92,7 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 				strip_crlf(*it);
 				try {commandParse((*it), fds[i].fd);}
 				catch (std::exception &e) {
-					std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
+					
 					sendToClient(fds[i].fd, e.what());
 				}
 			}

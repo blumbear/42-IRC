@@ -60,9 +60,11 @@ class Channel {
 		void addUser(clientId, int, bool);
 		void removeUser(clientId);
 		void removeUser(clientId, std::string);
+		int removeUser(std::string);
 
 		void setName(std::string name) {_name = name;}
 		std::string getName() {return _name;}
 		std::string getPassword() {return _channelMod.password;}
+		bool isOp(std::string);
 };
 
