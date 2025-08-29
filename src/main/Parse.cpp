@@ -11,7 +11,8 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["PRIVMSG"] = &Server::privmsgCmd;
 	cmdMap["PART"] = &Server::partCmd;
 	cmdMap["KICK"] = &Server::kickCmd;
-	cmdMap["MODE"] = &Server::modeCmd;
+	cmdMap["TOPIC"] = &Server::topicCmd;
+	// cmdMap["MODE"] = &Server::modeCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -135,7 +136,7 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		if (tmpP == std::string::npos)
 			tmpP = tmp.size();
 		if (_channelMap.count(tmp.substr(1, tmpP - 1)))
-			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(" :" + command.substr(pos + 1), _userMap[clientFd], "PRIVMSG");
+			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(" :" + command.substr(pos + 1), _userMap[clientFd], "PRIVMSG", true);
 		else throw ChannelNotFound();
 	} else {
 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
@@ -176,20 +177,15 @@ void Server::kickCmd(int clientFd, const std::string& command) {
 	else
 		tmp = command.size() - 1;
 	size_t spacePos = command.find_first_of(' ');
-	if (spacePos == std::string::npos)
-		throw CmdNeedMoreParam();
+	if (spacePos == std::string::npos) throw CmdNeedMoreParam();
 	std::string buffer = command.substr(spacePos + 1, tmp);
 	spacePos = buffer.find_first_of(' ');
-	if (spacePos == std::string::npos)
-		throw CmdNeedMoreParam();
-	if (buffer[0] != '#')
-		throw KickFormatError();
+	if (spacePos == std::string::npos) throw CmdNeedMoreParam();
+	if (buffer[0] != '#') throw KickFormatError();
 	std::string channel = buffer.substr(1, spacePos - 1);
-	if (_channelMap.count(channel) == 0)
-		throw NoSuchChannel();
+	if (_channelMap.count(channel) == 0) throw NoSuchChannel();
 	try {
-		if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
-			throw ChanPrivNeeded();
+		if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false) throw ChanPrivNeeded();
 		std::string userName = buffer.substr(spacePos + 1);
 		spacePos = userName.find_first_of(' ');
 		if (spacePos == std::string::npos)
@@ -197,30 +193,81 @@ void Server::kickCmd(int clientFd, const std::string& command) {
 		int userFd = _channelMap[channel].removeUser(userName.substr(0, spacePos));
 		sendToClient(userFd, "You have been kicked from " + channel + '.');
 		std::string kickMsg = command.substr(tmp + 1);
-		_channelMap[channel].sendMessageToChannelUser(' ' + userName.substr(0, spacePos) + " :" + (kickMsg == "" ? userName.substr(0, spacePos) + " has beed kicked.":kickMsg), _userMap[clientFd], "KICK");
+		_channelMap[channel].sendMessageToChannelUser(' ' + userName.substr(0, spacePos) + " :" + (kickMsg == "" ? userName.substr(0, spacePos) + " has beed kicked.":kickMsg), _userMap[clientFd], "KICK", true);
 	} catch (std::exception &e) {
 		std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
 		sendToClient(clientFd, e.what());
 	}
 }
 
-void Server::modeCmd(int clientFd, const std::string& command) {
-	std::map<std::string, void (Channel::*)(int, const std::string &)> modeMap;
-
+void Server::topicCmd(int clientFd, const std::string& command) {
 	size_t tmp = command.find_first_of(' ');
 	if (tmp == std::string::npos)
 		throw CmdNeedMoreParam();
 	std::string cmd = command.substr(tmp + 1);
 	if (cmd[0] != '#')
-		throw ModeFormatError();
+		throw TopicFormatError();
 	tmp = cmd.find_first_of(' ');
 	if (tmp == std::string::npos)
 		throw CmdNeedMoreParam();
-	std::string channel = cmd.substr(1, tmp);
+	std::string channel = cmd.substr(1, tmp - 1);
 	if (_channelMap.count(channel) == 0)
 		throw NoSuchChannel();
-	if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
-		throw ChanPrivNeeded();
-	if (cmd[tmp + 1] != '-' && cmd[tmp + 1] != '+')
-		throw ModeFormatError();
+	tmp = cmd.find_first_of(':');
+	if (tmp == std::string::npos)
+		sendToClient(clientFd, ":server 332 " + _userMap[clientFd]._nickname + " #" + channel + " :" + _channelMap[channel].getTopic());
+	else {
+		if (_channelMap[channel].getTopicOp() == true
+			&& _channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
+				throw ChanPrivNeeded();
+		_channelMap[channel].setTopic(cmd.substr(tmp + 1));
+		_channelMap[channel].sendMessageToChannelUser(" :" + _channelMap[channel].getTopic(), _userMap[clientFd], "TOPIC", true);
+	}
 }
+
+
+// void Server::modeCmd(int clientFd, const std::string& command) {
+// 	std::map<char, void (Channel::*)(std::string, unsigned int)> addModeMap;
+// 		addModeMap['i'] = &Channel::addInviteOnly;
+// 		addModeMap['t'] = &Channel::addTopicForOp;
+// 		addModeMap['k'] = &Channel::addPassword;
+// 		addModeMap['o'] = &Channel::addOp;
+// 		addModeMap['l'] = &Channel::addUserLimit;
+	
+// 	std::map<char, void (Channel::*)(std::string, unsigned int)> remModeMap;
+// 		addModeMap['i'] = &Channel::removedInviteOnly;
+// 		addModeMap['t'] = &Channel::removedTopicForOp;
+// 		addModeMap['k'] = &Channel::removedPassword;
+// 		addModeMap['o'] = &Channel::removedOp;
+// 		addModeMap['l'] = &Channel::removedUserLimit;
+
+// 	std::map<char, void (Channel::*)(std::string, unsigned int)> tmpMap;
+// 	size_t tmp = command.find_first_of(' ');
+// 	if (tmp == std::string::npos)
+// 		throw CmdNeedMoreParam();
+// 	std::string cmd = command.substr(tmp + 1);
+// 	if (cmd[0] != '#')
+// 		throw ModeFormatError();
+// 	tmp = cmd.find_first_of(' ');
+// 	if (tmp == std::string::npos)
+// 		throw CmdNeedMoreParam();
+// 	std::string channel = cmd.substr(1, tmp - 1);
+// 	if (_channelMap.count(channel) == 0)
+// 		throw NoSuchChannel();
+// 	if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
+// 		throw NotOnChannel();
+// 	if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
+// 		throw ChanPrivNeeded();
+// 	if (cmd[tmp + 1] == '-')
+// 		tmpMap = addModeMap;
+// 	else if (cmd[tmp + 1] == '+')
+// 		tmpMap = remModeMap;
+// 	else
+// 		throw ModeFormatError();
+// 	for (std::map<char, void (Channel::*)(std::string, unsigned int)>::iterator it = tmpMap.begin(); it != tmpMap.end(); it++) {
+// 		if (cmd[tmp + 2] == it->first) {
+// 			_channelMap[channel].it->second()
+// 		}
+// 	}
+// }
+
