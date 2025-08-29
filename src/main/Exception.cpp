@@ -37,6 +37,8 @@ const char* Server::ChannelNotFound::what() const throw() {return (":The channel
 
 const char* Server::KickFormatError::what() const throw() {return (":Kick format is not correct.");}
 
+const char* Server::ModeFormatError::what() const throw() {return (":Mode format is not correct.");}
+
 
 const char* Server::NoSuchNick::what() const throw() {return (":401 ERR_NOSUCHNICK");}
 
@@ -50,9 +52,19 @@ const char* Server::NickInUse::what() const throw() {return (":433 ERR_NICKNAMEI
 
 const char* Server::NotOnChannel::what() const throw() {return (":442 ERR_NOTONCHANNEL");}
 
+const char* Server::UserOnChan::what() const throw() {return (":443 ERR_USERONCHANNEL");}
+
 const char* Server::CmdNeedMoreParam::what() const throw() {return (":461 ERR_NEEDMOREPARAMS");}
 
 const char* Server::AlreadyRegistered::what() const throw() {return (":462 ERR_ALREADYREGISTRED");}
+
+const char* Server::ChanIsFull::what() const throw() {return (":471 ERR_CHANNELISFULL");}
+
+const char* Server::UnknownMode::what() const throw() {return (":472 ERR_UNKNOWNMODE");}
+
+const char* Server::ChanInviteOnly::what() const throw() {return (":473 ERR_INVITEONLYCHAN");}
+
+const char* Server::ChanBadKey::what() const throw() {return (":475 ERR_BADCHANNELKEY");}
 
 const char* Server::ChanPrivNeeded::what() const throw() {return (":482 ERR_CHANOPRIVSNEEDED");}
 

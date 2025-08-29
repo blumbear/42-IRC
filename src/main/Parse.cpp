@@ -11,6 +11,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["PRIVMSG"] = &Server::privmsgCmd;
 	cmdMap["PART"] = &Server::partCmd;
 	cmdMap["KICK"] = &Server::kickCmd;
+	cmdMap["MODE"] = &Server::modeCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -112,8 +113,12 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 		_channelMap[tmp] = Channel(tmp);
 		_channelMap[tmp].addUser(_userMap[clientFd], clientFd, true);
 	}
-	else if (_channelMap[tmp].getPassword() == "")
-		_channelMap[tmp].addUser(_userMap[clientFd], clientFd, false);
+	else {
+		if (_channelMap[tmp].find(_userMap[clientFd]._nickname) == true)
+			throw UserOnChan();
+		if (_channelMap[tmp].getPassword() == "")
+			_channelMap[tmp].addUser(_userMap[clientFd], clientFd, false);
+	}
 }
 
 void Server::privmsgCmd(int clientFd, const std::string& command) {
@@ -197,4 +202,25 @@ void Server::kickCmd(int clientFd, const std::string& command) {
 		std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
 		sendToClient(clientFd, e.what());
 	}
+}
+
+void Server::modeCmd(int clientFd, const std::string& command) {
+	std::map<std::string, void (Channel::*)(int, const std::string &)> modeMap;
+
+	size_t tmp = command.find_first_of(' ');
+	if (tmp == std::string::npos)
+		throw CmdNeedMoreParam();
+	std::string cmd = command.substr(tmp + 1);
+	if (cmd[0] != '#')
+		throw ModeFormatError();
+	tmp = cmd.find_first_of(' ');
+	if (tmp == std::string::npos)
+		throw CmdNeedMoreParam();
+	std::string channel = cmd.substr(1, tmp);
+	if (_channelMap.count(channel) == 0)
+		throw NoSuchChannel();
+	if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
+		throw ChanPrivNeeded();
+	if (cmd[tmp + 1] != '-' && cmd[tmp + 1] != '+')
+		throw ModeFormatError();
 }

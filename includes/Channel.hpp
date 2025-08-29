@@ -26,6 +26,7 @@ class Channel {
 		std::map<std::string, clientInfo> _userMap; // nom de chaque utilisateur sur le channel et si oui ou non il est op
 		std::string _name;
 		channelMod _channelMod;
+		std::string _topic;
 	public:
 
 
@@ -48,11 +49,13 @@ class Channel {
 		void removedTopicForOp();
 		void removedPassword();
 		void removedUserLimit();
+		void removedOp(std::string);
 
 		void addInviteOnly();
 		void addTopicForOp();
 		void addPassword(std::string);
 		void addUserLimit(unsigned int);
+		void addOp(std::string);
 
 		void sendMessageToChannelUser(std::string, clientId, std::string);
 		void printChannelUser();
@@ -65,6 +68,7 @@ class Channel {
 		void setName(std::string name) {_name = name;}
 		std::string getName() {return _name;}
 		std::string getPassword() {return _channelMod.password;}
+		bool find(std::string name) {return _userMap.count(name);}
 		bool isOp(std::string);
 };
 

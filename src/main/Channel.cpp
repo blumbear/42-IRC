@@ -33,6 +33,11 @@ void Channel::removedPassword() {_channelMod.password = "";}
 
 void Channel::removedUserLimit() {_channelMod.userLimit = 0;}
 
+void Channel::removedOp(std::string name) {
+	if (_userMap.count(name) == 0)
+		throw Server::NotOnChannel();
+	_userMap[name].isOp = true;
+}
 
 void Channel::addInviteOnly() {_channelMod.inviteOnly = true;}
 
@@ -52,6 +57,11 @@ void Channel::addPassword(std::string newPassword) {
 
 void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
 
+void Channel::addOp(std::string name) {
+	if (_userMap.count(name) == 0)
+		throw Server::NotOnChannel();
+	_userMap[name].isOp = false;
+}
 
 void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd) {
 	std::string toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + msg + "\r\n";
@@ -108,5 +118,5 @@ bool Channel::isOp(std::string name) {
 		if (it->first == name)
 			return it->second.isOp;
 	}
-	throw Server::NotOnChannel();
+	return false;
 }
