@@ -39,6 +39,8 @@ const char* Server::KickFormatError::what() const throw() {return (":Kick format
 
 const char* Server::ModeFormatError::what() const throw() {return (":Mode format is not correct.");}
 
+const char* Server::TopicFormatError::what() const throw() {return (":Topic format is not correct.");}
+
 
 const char* Server::NoSuchNick::what() const throw() {return (":401 ERR_NOSUCHNICK");}
 

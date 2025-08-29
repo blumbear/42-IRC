@@ -4,7 +4,7 @@
 
 Channel::Channel() : _name("default") {}
 
-Channel::Channel(std::string name) : _name(name) {
+Channel::Channel(std::string name) : _name(name), _topic("Come chat.") {
 	_channelMod.inviteOnly = false;
 	_channelMod.topicForOp = false;
 	_channelMod.password = "";
@@ -25,25 +25,25 @@ Channel &Channel::operator=(const Channel &other) {
 
 /* =========== Member Function =========== */
 
-void Channel::removedInviteOnly() {_channelMod.inviteOnly = false;}
+void Channel::removedInviteOnly(std::string, unsigned int) {_channelMod.inviteOnly = false;}
 
-void Channel::removedTopicForOp() {_channelMod.topicForOp = false;}
+void Channel::removedTopicForOp(std::string, unsigned int) {_channelMod.topicForOp = false;}
 
-void Channel::removedPassword() {_channelMod.password = "";}
+void Channel::removedPassword(std::string, unsigned int) {_channelMod.password = "";}
 
-void Channel::removedUserLimit() {_channelMod.userLimit = 0;}
+void Channel::removedUserLimit(std::string, unsigned int) {_channelMod.userLimit = 0;}
 
-void Channel::removedOp(std::string name) {
+void Channel::removedOp(std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
 	_userMap[name].isOp = true;
 }
 
-void Channel::addInviteOnly() {_channelMod.inviteOnly = true;}
+void Channel::addInviteOnly(std::string, unsigned int) {_channelMod.inviteOnly = true;}
 
-void Channel::addTopicForOp() {_channelMod.topicForOp = true;}
+void Channel::addTopicForOp(std::string, unsigned int) {_channelMod.topicForOp = true;}
 
-void Channel::addPassword(std::string newPassword) {
+void Channel::addPassword(std::string newPassword, unsigned int) {
 	if (newPassword.size() > 20)
 		throw passwordTooLong();
 	for (size_t i = 0; i < newPassword.size(); i++) {
@@ -55,16 +55,20 @@ void Channel::addPassword(std::string newPassword) {
 	throw passwordIncorect();
 }
 
-void Channel::addUserLimit(unsigned int n) {_channelMod.userLimit = n;}
+void Channel::addUserLimit(std::string, unsigned int n) {_channelMod.userLimit = n;}
 
-void Channel::addOp(std::string name) {
+void Channel::addOp(std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
 	_userMap[name].isOp = false;
 }
 
-void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd) {
-	std::string toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + msg + "\r\n";
+void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd, bool prompt) {
+	std::string toSend;
+	if (prompt) 
+		toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + msg + "\r\n";
+	else
+		toSend = msg;
 	std::cout << "\033[36mSent in " << _name << "\033[0m :" << toSend;
 	for (std::map<std::string, clientInfo>::iterator it = _userMap.begin(); it != _userMap.end(); ++it) {
 		if (it->first != cData._nickname || cmd != "PRIVMSG")
@@ -85,23 +89,23 @@ void Channel::addUser(clientId data, int clientFd, bool op) {
 	newclientInfo.isOp = op;
 	_userMap[data._nickname] = newclientInfo;
 	const std::string toSend(data._nickname + " join the channel.");
-	sendMessageToChannelUser(" :" + toSend, data, "JOIN");
+	sendMessageToChannelUser(" :" + toSend, data, "JOIN", true);
 }
 
 void Channel::removeUser(clientId data) {
 	if (_userMap.count(data._nickname) == 0)
 		throw Server::NotOnChannel();
-	_userMap.erase(data._nickname);
 	const std::string toSend(data._nickname + " quit the channel.");
-	sendMessageToChannelUser(" :" + toSend, data, "PART");
+	sendMessageToChannelUser(" :" + toSend, data, "PART", true);
+	_userMap.erase(data._nickname);
 }
 
 void Channel::removeUser(clientId data, std::string msg) {
 	if (_userMap.count(data._nickname) == 0)
 		throw Server::NotOnChannel();
-	_userMap.erase(data._nickname);
 	const std::string toSend(msg);
-	sendMessageToChannelUser(" :" + toSend, data, "PART");
+	sendMessageToChannelUser(" :" + toSend, data, "PART", true);
+	_userMap.erase(data._nickname);
 }
 
 int Channel::removeUser(std::string name) {

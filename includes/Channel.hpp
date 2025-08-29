@@ -45,19 +45,19 @@ class Channel {
 
 /* =========== Member Function =========== */
 
-		void removedInviteOnly();
-		void removedTopicForOp();
-		void removedPassword();
-		void removedUserLimit();
-		void removedOp(std::string);
+		void removedInviteOnly(std::string, unsigned int);
+		void removedTopicForOp(std::string, unsigned int);
+		void removedPassword(std::string, unsigned int);
+		void removedUserLimit(std::string, unsigned int);
+		void removedOp(std::string s, unsigned int);
 
-		void addInviteOnly();
-		void addTopicForOp();
-		void addPassword(std::string);
-		void addUserLimit(unsigned int);
-		void addOp(std::string);
+		void addInviteOnly(std::string, unsigned int);
+		void addTopicForOp(std::string, unsigned int);
+		void addPassword(std::string s, unsigned int);
+		void addUserLimit(std::string, unsigned int n);
+		void addOp(std::string s, unsigned int);
 
-		void sendMessageToChannelUser(std::string, clientId, std::string);
+		void sendMessageToChannelUser(std::string, clientId, std::string, bool);
 		void printChannelUser();
 
 		void addUser(clientId, int, bool);
@@ -66,8 +66,13 @@ class Channel {
 		int removeUser(std::string);
 
 		void setName(std::string name) {_name = name;}
+		void setTopic(std::string newTopic) {_topic = newTopic;}
+
 		std::string getName() {return _name;}
 		std::string getPassword() {return _channelMod.password;}
+		std::string getTopic() {return _topic;}
+		bool getTopicOp() {return _channelMod.topicForOp;}
+
 		bool find(std::string name) {return _userMap.count(name);}
 		bool isOp(std::string);
 };

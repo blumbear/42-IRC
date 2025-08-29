@@ -77,7 +77,8 @@ class Server {
 		void privmsgCmd(int, const std::string&);
 		void partCmd(int, const std::string&);
 		void kickCmd(int, const std::string&);
-		void modeCmd(int, const std::string&);
+		void topicCmd(int, const std::string&);
+		// void modeCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 		class UnknownError: public std::exception {public :const char* what() const throw();};
@@ -99,6 +100,7 @@ class Server {
 		class ChannelNotFound: public std::exception {public :const char* what() const throw();};
 		class KickFormatError: public std::exception {public :const char* what() const throw();};
 		class ModeFormatError: public std::exception {public :const char* what() const throw();};
+		class TopicFormatError: public std::exception {public :const char* what() const throw();};
 
 		class NoSuchNick: public std::exception {public :const char* what() const throw();};
 		class NoSuchChannel: public std::exception {public :const char* what() const throw();};
