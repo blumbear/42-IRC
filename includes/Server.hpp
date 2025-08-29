@@ -66,16 +66,18 @@ class Server {
 		void sendPingToAllClients();
 		
 		void commandParse(const std::string& command, int clientFd);
+		std::string compareServOption(std::string);
+
 		void passCmd(int, const std::string&);
 		void nickCmd(int, const std::string&);
 		void userCmd(int, const std::string&);
-		std::string compareServOption(std::string);
 		void capCmd(int, const std::string&);
 		void pingCmd(int, const std::string&);
 		void joinCmd(int, const std::string&);
 		void privmsgCmd(int, const std::string&);
 		void partCmd(int, const std::string&);
 		void kickCmd(int, const std::string&);
+		void modeCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 		class UnknownError: public std::exception {public :const char* what() const throw();};
@@ -92,9 +94,11 @@ class Server {
 		class WrongPassword: public std::exception {public :const char* what() const throw();};
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};
 		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
+		
 		class JoinFormatError: public std::exception {public :const char* what() const throw();};
 		class ChannelNotFound: public std::exception {public :const char* what() const throw();};
 		class KickFormatError: public std::exception {public :const char* what() const throw();};
+		class ModeFormatError: public std::exception {public :const char* what() const throw();};
 
 		class NoSuchNick: public std::exception {public :const char* what() const throw();};
 		class NoSuchChannel: public std::exception {public :const char* what() const throw();};
@@ -102,8 +106,13 @@ class Server {
 		class PrivmsgFormatError: public std::exception {public :const char* what() const throw();};
 		class NickInUse: public std::exception {public :const char* what() const throw();};
 		class NotOnChannel: public std::exception {public :const char* what() const throw();};
+		class UserOnChan: public std::exception {public :const char* what() const throw();};
 		class CmdNeedMoreParam: public std::exception {public :const char* what() const throw();};
 		class AlreadyRegistered: public std::exception {public :const char* what() const throw();};
+		class ChanIsFull: public std::exception {public :const char* what() const throw();};
+		class UnknownMode: public std::exception {public :const char* what() const throw();};
+		class ChanInviteOnly: public std::exception {public :const char* what() const throw();};
+		class ChanBadKey: public std::exception {public :const char* what() const throw();};
 		class ChanPrivNeeded: public std::exception {public :const char* what() const throw();};
 
 /* ======= Constructor & Destructor ======= */
