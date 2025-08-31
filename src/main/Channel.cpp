@@ -57,7 +57,13 @@ void Channel::addPassword(clientId cData, std::string newPassword, unsigned int)
 	throw passwordIncorect();
 }
 
-void Channel::addUserLimit(clientId cData, std::string, unsigned int n) {_channelMod.userLimit = n; sendMessageToChannelUser(" +l " + n, cData, "MODE", true);}
+void Channel::addUserLimit(clientId cData, std::string, unsigned int n) {
+	_channelMod.userLimit = n;
+	std::ostringstream oss;
+	oss << n;
+	std::string str = oss.str();
+	sendMessageToChannelUser(" +l " + str, cData, "MODE", true);
+}
 
 void Channel::addOp(clientId cData, std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
@@ -87,6 +93,8 @@ void Channel::printChannelUser() {
 
 
 void Channel::addUser(clientId data, int clientFd, bool op) {
+	if (_numOfUser + 1 > _channelMod.userLimit && _channelMod.userLimit != 0)
+		throw Server::ChanIsFull();
 	clientInfo newclientInfo;
 	newclientInfo.clientFd = clientFd;
 	newclientInfo.isOp = op;

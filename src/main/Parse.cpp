@@ -115,22 +115,26 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 		_channelMap[channel].addUser(_userMap[clientFd], clientFd, true);
 	}
 	else {
-
-		if (_channelMap[channel].find(_userMap[clientFd]._nickname) == true)
-			throw UserOnChan();
-		if (_channelMap[channel].getInvite() == true) {
-			if (_channelMap[channel].isInvite(_userMap[clientFd]._nickname) == true)
+		try {
+			if (_channelMap[channel].find(_userMap[clientFd]._nickname) == true)
+				throw UserOnChan();
+			if (_channelMap[channel].getInvite() == true) {
+				if (_channelMap[channel].isInvite(_userMap[clientFd]._nickname) == true)
+					_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
+				else
+					throw ChanInviteOnly();
+			}
+			else if (cmdVec[2] == _channelMap[channel].getPassword())
 				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-			else
-				throw ChanInviteOnly();
+			else if (cmdVec[2] != _channelMap[channel].getPassword())
+				throw WrongPassword();
+			else if (_channelMap[channel].getPassword() == "")
+				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
+			} catch (std::exception &e) {
+				std::cout << "\033[31mError\033[0m :"<<  e.what() << std::endl;
+				sendToClient(clientFd, e.what());
+			}
 		}
-		else if (cmdVec[2] == _channelMap[channel].getPassword())
-			_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-		else if (cmdVec[2] != _channelMap[channel].getPassword())
-			throw WrongPassword();
-		else if (_channelMap[channel].getPassword() == "")
-			_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-	}
 }
 
 void Server::privmsgCmd(int clientFd, const std::string& command) {
