@@ -29,6 +29,7 @@ class Channel {
 		channelMod _channelMod;
 		std::string _topic;
 		std::set<std::string> _inviteSet;
+		unsigned int _numOfUser;
 	public:
 
 
