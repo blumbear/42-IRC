@@ -25,42 +25,45 @@ Channel &Channel::operator=(const Channel &other) {
 
 /* =========== Member Function =========== */
 
-void Channel::removedInviteOnly(std::string, unsigned int) {_channelMod.inviteOnly = false;}
+void Channel::removedInviteOnly(clientId cData, std::string, unsigned int) {_channelMod.inviteOnly = false; sendMessageToChannelUser(" -i", cData, "MODE", true);}
 
-void Channel::removedTopicForOp(std::string, unsigned int) {_channelMod.topicForOp = false;}
+void Channel::removedTopicForOp(clientId cData, std::string, unsigned int) {_channelMod.topicForOp = false; sendMessageToChannelUser(" -t", cData, "MODE", true);}
 
-void Channel::removedPassword(std::string, unsigned int) {_channelMod.password = "";}
+void Channel::removedPassword(clientId cData, std::string, unsigned int) {_channelMod.password = ""; sendMessageToChannelUser(" -k", cData, "MODE", true);}
 
-void Channel::removedUserLimit(std::string, unsigned int) {_channelMod.userLimit = 0;}
+void Channel::removedUserLimit(clientId cData, std::string, unsigned int) {_channelMod.userLimit = 0; sendMessageToChannelUser(" -l", cData, "MODE", true);}
 
-void Channel::removedOp(std::string name, unsigned int) {
+void Channel::removedOp(clientId cData, std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
 	_userMap[name].isOp = true;
+	sendMessageToChannelUser(" -o " + name, cData, "MODE", true);
 }
 
-void Channel::addInviteOnly(std::string, unsigned int) {_channelMod.inviteOnly = true;}
+void Channel::addInviteOnly(clientId cData, std::string, unsigned int) {_channelMod.inviteOnly = true; sendMessageToChannelUser(" +i", cData, "MODE", true);}
 
-void Channel::addTopicForOp(std::string, unsigned int) {_channelMod.topicForOp = true;}
+void Channel::addTopicForOp(clientId cData, std::string, unsigned int) {_channelMod.topicForOp = true; sendMessageToChannelUser(" +t", cData, "MODE", true);}
 
-void Channel::addPassword(std::string newPassword, unsigned int) {
+void Channel::addPassword(clientId cData, std::string newPassword, unsigned int) {
 	if (newPassword.size() > 20)
 		throw passwordTooLong();
 	for (size_t i = 0; i < newPassword.size(); i++) {
 		if (newPassword[i] != ' ') {
 			_channelMod.password = newPassword;
+			sendMessageToChannelUser(" +k " + newPassword, cData, "MODE", true);
 			return ;
 		}
 	}
 	throw passwordIncorect();
 }
 
-void Channel::addUserLimit(std::string, unsigned int n) {_channelMod.userLimit = n;}
+void Channel::addUserLimit(clientId cData, std::string, unsigned int n) {_channelMod.userLimit = n; sendMessageToChannelUser(" +l " + n, cData, "MODE", true);}
 
-void Channel::addOp(std::string name, unsigned int) {
+void Channel::addOp(clientId cData, std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
 	_userMap[name].isOp = false;
+	sendMessageToChannelUser(" +o " + name, cData, "MODE", true);
 }
 
 void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd, bool prompt) {
