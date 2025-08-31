@@ -78,7 +78,7 @@ class Server {
 		void partCmd(int, const std::string&);
 		void kickCmd(int, const std::string&);
 		void topicCmd(int, const std::string&);
-		// void modeCmd(int, const std::string&);
+		void modeCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 		class UnknownError: public std::exception {public :const char* what() const throw();};

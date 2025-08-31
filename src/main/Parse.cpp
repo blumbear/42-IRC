@@ -12,7 +12,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["PART"] = &Server::partCmd;
 	cmdMap["KICK"] = &Server::kickCmd;
 	cmdMap["TOPIC"] = &Server::topicCmd;
-	// cmdMap["MODE"] = &Server::modeCmd;
+	cmdMap["MODE"] = &Server::modeCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -107,18 +107,29 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 		throw CmdNeedMoreParam();
 	else if (cmdVec[1][0] != '#')
 		throw JoinFormatError();
-	std::string tmp = cmdVec[1].substr(1);
-	if (tmp.empty())
+	std::string channel = cmdVec[1].substr(1);
+	if (channel.empty())
 		throw CmdNeedMoreParam();
-	if (_channelMap.count(tmp) == 0) {
-		_channelMap[tmp] = Channel(tmp);
-		_channelMap[tmp].addUser(_userMap[clientFd], clientFd, true);
+	if (_channelMap.count(channel) == 0) {
+		_channelMap[channel] = Channel(channel);
+		_channelMap[channel].addUser(_userMap[clientFd], clientFd, true);
 	}
 	else {
-		if (_channelMap[tmp].find(_userMap[clientFd]._nickname) == true)
+
+		if (_channelMap[channel].find(_userMap[clientFd]._nickname) == true)
 			throw UserOnChan();
-		if (_channelMap[tmp].getPassword() == "")
-			_channelMap[tmp].addUser(_userMap[clientFd], clientFd, false);
+		if (_channelMap[channel].getInvite() == true) {
+			if (_channelMap[channel].isInvite(_userMap[clientFd]._nickname) == true)
+				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
+			else
+				throw ChanInviteOnly();
+		}
+		else if (cmdVec[2] == _channelMap[channel].getPassword())
+			_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
+		else if (cmdVec[2] != _channelMap[channel].getPassword())
+			throw WrongPassword();
+		else if (_channelMap[channel].getPassword() == "")
+			_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
 	}
 }
 
@@ -226,48 +237,58 @@ void Server::topicCmd(int clientFd, const std::string& command) {
 }
 
 
-// void Server::modeCmd(int clientFd, const std::string& command) {
-// 	std::map<char, void (Channel::*)(std::string, unsigned int)> addModeMap;
-// 		addModeMap['i'] = &Channel::addInviteOnly;
-// 		addModeMap['t'] = &Channel::addTopicForOp;
-// 		addModeMap['k'] = &Channel::addPassword;
-// 		addModeMap['o'] = &Channel::addOp;
-// 		addModeMap['l'] = &Channel::addUserLimit;
+void Server::modeCmd(int clientFd, const std::string& command) {
+	std::map<std::string, void (Channel::*)(clientId, std::string, unsigned int)> addModeMap;
+		addModeMap["i"] = &Channel::addInviteOnly;
+		addModeMap["t"] = &Channel::addTopicForOp;
+		addModeMap["k"] = &Channel::addPassword;
+		addModeMap["o"] = &Channel::addOp;
+		addModeMap["l"] = &Channel::addUserLimit;
 	
-// 	std::map<char, void (Channel::*)(std::string, unsigned int)> remModeMap;
-// 		addModeMap['i'] = &Channel::removedInviteOnly;
-// 		addModeMap['t'] = &Channel::removedTopicForOp;
-// 		addModeMap['k'] = &Channel::removedPassword;
-// 		addModeMap['o'] = &Channel::removedOp;
-// 		addModeMap['l'] = &Channel::removedUserLimit;
+	std::map<std::string, void (Channel::*)(clientId, std::string, unsigned int)> remModeMap;
+		remModeMap["i"] = &Channel::removedInviteOnly;
+		remModeMap["t"] = &Channel::removedTopicForOp;
+		remModeMap["k"] = &Channel::removedPassword;
+		remModeMap["o"] = &Channel::removedOp;
+		remModeMap["l"] = &Channel::removedUserLimit;
 
-// 	std::map<char, void (Channel::*)(std::string, unsigned int)> tmpMap;
-// 	size_t tmp = command.find_first_of(' ');
-// 	if (tmp == std::string::npos)
-// 		throw CmdNeedMoreParam();
-// 	std::string cmd = command.substr(tmp + 1);
-// 	if (cmd[0] != '#')
-// 		throw ModeFormatError();
-// 	tmp = cmd.find_first_of(' ');
-// 	if (tmp == std::string::npos)
-// 		throw CmdNeedMoreParam();
-// 	std::string channel = cmd.substr(1, tmp - 1);
-// 	if (_channelMap.count(channel) == 0)
-// 		throw NoSuchChannel();
-// 	if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
-// 		throw NotOnChannel();
-// 	if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
-// 		throw ChanPrivNeeded();
-// 	if (cmd[tmp + 1] == '-')
-// 		tmpMap = addModeMap;
-// 	else if (cmd[tmp + 1] == '+')
-// 		tmpMap = remModeMap;
-// 	else
-// 		throw ModeFormatError();
-// 	for (std::map<char, void (Channel::*)(std::string, unsigned int)>::iterator it = tmpMap.begin(); it != tmpMap.end(); it++) {
-// 		if (cmd[tmp + 2] == it->first) {
-// 			_channelMap[channel].it->second()
-// 		}
-// 	}
-// }
+	std::map<std::string, void (Channel::*)(clientId, std::string, unsigned int)> tmpMap;
+	size_t tmp = command.find_first_of(' ');
+	if (tmp == std::string::npos)
+		throw CmdNeedMoreParam();
+	std::string cmd = command.substr(tmp + 1);
+	if (cmd[0] != '#')
+		throw ModeFormatError();
+	tmp = cmd.find_first_of(' ');
+	if (tmp == std::string::npos)
+		throw CmdNeedMoreParam();
+	std::string channel = cmd.substr(1, tmp - 1);
+	cmd = cmd.substr(tmp + 1);
+	if (_channelMap.count(channel) == 0)
+		throw NoSuchChannel();
+	if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
+		throw NotOnChannel();
+	if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
+		throw ChanPrivNeeded();
+
+	if (cmd[0] == '-')
+		tmpMap = remModeMap;
+	else if (cmd[0] == '+')
+		tmpMap = addModeMap;
+	else
+		throw ModeFormatError();
+
+	tmp = cmd.find_first_of(' ');
+	std::string arg;
+	if (tmp == std::string::npos)
+		arg = "";
+	else
+		arg = cmd.substr(tmp + 1);
+	std::cout << "here :" << cmd.substr(1, 1) << "$\n";
+	if (tmpMap.count(cmd.substr(1, 1)) != 0) {
+		std::cout << "here\n";
+		(_channelMap[channel].*(tmpMap[cmd.substr(1, 1)]))(_userMap[clientFd], arg, std::atoi(arg.c_str()));
+	}
+	std::cout << "test\n";
+}
 

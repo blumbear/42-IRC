@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <sys/socket.h>
+#include <set>
 
 #include "Server.hpp"
 
@@ -27,6 +28,7 @@ class Channel {
 		std::string _name;
 		channelMod _channelMod;
 		std::string _topic;
+		std::set<std::string> _inviteSet;
 	public:
 
 
@@ -45,17 +47,17 @@ class Channel {
 
 /* =========== Member Function =========== */
 
-		void removedInviteOnly(std::string, unsigned int);
-		void removedTopicForOp(std::string, unsigned int);
-		void removedPassword(std::string, unsigned int);
-		void removedUserLimit(std::string, unsigned int);
-		void removedOp(std::string s, unsigned int);
+		void removedInviteOnly(clientId cData, std::string, unsigned int);
+		void removedTopicForOp(clientId cData, std::string, unsigned int);
+		void removedPassword(clientId cData, std::string, unsigned int);
+		void removedUserLimit(clientId cData, std::string, unsigned int);
+		void removedOp(clientId cData, std::string s, unsigned int);
 
-		void addInviteOnly(std::string, unsigned int);
-		void addTopicForOp(std::string, unsigned int);
-		void addPassword(std::string s, unsigned int);
-		void addUserLimit(std::string, unsigned int n);
-		void addOp(std::string s, unsigned int);
+		void addInviteOnly(clientId cData, std::string, unsigned int);
+		void addTopicForOp(clientId cData, std::string, unsigned int);
+		void addPassword(clientId cData, std::string s, unsigned int);
+		void addUserLimit(clientId cData, std::string, unsigned int n);
+		void addOp(clientId cData, std::string s, unsigned int);
 
 		void sendMessageToChannelUser(std::string, clientId, std::string, bool);
 		void printChannelUser();
@@ -70,10 +72,12 @@ class Channel {
 
 		std::string getName() {return _name;}
 		std::string getPassword() {return _channelMod.password;}
+		bool getInvite() {return _channelMod.inviteOnly;}
 		std::string getTopic() {return _topic;}
 		bool getTopicOp() {return _channelMod.topicForOp;}
 
 		bool find(std::string name) {return _userMap.count(name);}
+		bool isInvite(std::string name) {return _inviteSet.find(name) != _inviteSet.end();}
 		bool isOp(std::string);
 };
 
