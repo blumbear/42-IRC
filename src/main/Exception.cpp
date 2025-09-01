@@ -28,6 +28,8 @@ const char* Server::WrongPassword::what() const throw() {return ("Password is in
 
 const char* Server::NickTooLongError::what() const throw() {return ("Nick is too long.");}
 
+const char* Server::AlreadyInvite::what() const throw() {return ("User already invite.");}
+
 
 const char* Server::UnknownCmdError::what() const throw() {return ("Unknown command or missing arguments.");}
 
@@ -40,6 +42,8 @@ const char* Server::KickFormatError::what() const throw() {return (":Kick format
 const char* Server::ModeFormatError::what() const throw() {return (":Mode format is not correct.");}
 
 const char* Server::TopicFormatError::what() const throw() {return (":Topic format is not correct.");}
+
+const char* Server::InviteFormatError::what() const throw() {return (":Invite format is not correct.");}
 
 
 const char* Server::NoSuchNick::what() const throw() {return (":401 ERR_NOSUCHNICK");}

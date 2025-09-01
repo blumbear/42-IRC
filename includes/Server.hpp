@@ -44,13 +44,13 @@ struct clientId {
 
 class Server {
 	private:
-		std::string				_password;
-		uint16_t				_port;
-		int						_serverFd;
-		std::string 			_serverIp;
-		std::string 			_serverHost;
-		std::string 			_serverOption;
-		const std::string		_serverName;
+		std::string			_password;
+		uint16_t			_port;
+		int					_serverFd;
+		std::string 		_serverIp;
+		std::string 		_serverHost;
+		std::string 		_serverOption;
+		const std::string	_serverName;
 		std::map<std::string, Channel> _channelMap;
 		std::map<int, clientId>	_userMap; // map of fd and nickname username
 
@@ -79,6 +79,7 @@ class Server {
 		void kickCmd(int, const std::string&);
 		void topicCmd(int, const std::string&);
 		void modeCmd(int, const std::string&);
+		void inviteCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 		class UnknownError: public std::exception {public :const char* what() const throw();};
@@ -94,13 +95,15 @@ class Server {
 		class NoPasswordNeeded: public std::exception {public :const char* what() const throw();};
 		class WrongPassword: public std::exception {public :const char* what() const throw();};
 		class NickTooLongError: public std::exception {public :const char* what() const throw();};
-		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
+		class AlreadyInvite: public std::exception {public :const char* what() const throw();};
 		
+		class UnknownCmdError: public std::exception {public :const char* what() const throw();};
 		class JoinFormatError: public std::exception {public :const char* what() const throw();};
 		class ChannelNotFound: public std::exception {public :const char* what() const throw();};
 		class KickFormatError: public std::exception {public :const char* what() const throw();};
 		class ModeFormatError: public std::exception {public :const char* what() const throw();};
 		class TopicFormatError: public std::exception {public :const char* what() const throw();};
+		class InviteFormatError: public std::exception {public :const char* what() const throw();};
 
 		class NoSuchNick: public std::exception {public :const char* what() const throw();};
 		class NoSuchChannel: public std::exception {public :const char* what() const throw();};
