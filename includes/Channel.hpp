@@ -80,7 +80,7 @@ class Channel {
 		bool getTopicOp() {return _channelMod.topicForOp;}
 
 		bool find(std::string name) {return _userMap.count(name);}
-		bool isInvite(std::string name) {return _inviteSet.find(name) != _inviteSet.end();}
+		bool isInvite(std::string name) {return _inviteSet.count(name) != 0;}
 		bool isOp(std::string);
 };
 

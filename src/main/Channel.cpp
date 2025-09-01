@@ -74,9 +74,9 @@ void Channel::addOp(clientId cData, std::string name, unsigned int) {
 
 
 void Channel::addinvite(std::string name, clientId cData) {
-	if (_inviteSet.count(name) == 0)
+	if (_inviteSet.count(name) != 0)
 		throw Server::AlreadyInvite();
-	else if (_userMap.count(cData._nickname) != 0)
+	else if (_userMap.count(name) != 0)
 		throw Server::UserOnChan();
 	_inviteSet.insert(name);
 	sendMessageToChannelUser(name + ":", cData, "INVITE", true);

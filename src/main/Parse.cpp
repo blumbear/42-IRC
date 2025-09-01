@@ -119,11 +119,11 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 		try {
 			if (_channelMap[channel].find(_userMap[clientFd]._nickname) == true)
 				throw UserOnChan();
-			if (_channelMap[channel].getInvite() == true) {
-				if (_channelMap[channel].isInvite(_userMap[clientFd]._nickname) == true)
-					_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-				else
+			else if (_channelMap[channel].getInvite() == true) {
+				if (_channelMap[channel].isInvite(_userMap[clientFd]._nickname) == false)
 					throw ChanInviteOnly();
+				else
+					_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
 			}
 			else if (cmdVec[2] == _channelMap[channel].getPassword())
 				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
@@ -135,7 +135,7 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 			std::cout << "\033[31mError\033[0m :"<<  e.what() << std::endl;
 			sendToClient(clientFd, e.what());
 		}
-		}
+	}
 }
 
 void Server::privmsgCmd(int clientFd, const std::string& command) {
@@ -201,7 +201,8 @@ void Server::kickCmd(int clientFd, const std::string& command) {
 	std::string channel = buffer.substr(1, spacePos - 1);
 	if (_channelMap.count(channel) == 0) throw NoSuchChannel();
 	try {
-		if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false) throw ChanPrivNeeded();
+		if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
+			throw ChanPrivNeeded();
 		std::string userName = buffer.substr(spacePos + 1);
 		spacePos = userName.find_first_of(' ');
 		if (spacePos == std::string::npos)
@@ -309,12 +310,12 @@ void Server::inviteCmd(int clientFd, const std::string& command) {
 	std::string channel = cmd.substr(spacePos + 2);
 	if (_channelMap.count(channel) == 0)
 		throw NoSuchChannel();
-	std::string target = cmd.substr(spacePos);
+	std::string target = cmd.substr(0, spacePos);
 	for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
 		if (it->second._nickname == target) {
 			_channelMap[channel].addinvite(target, _userMap[clientFd]);
 			return ;
 		}
 	}
-	throw NotOnChannel();
+	throw NoSuchNick();
 }
