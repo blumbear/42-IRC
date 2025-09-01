@@ -13,6 +13,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["KICK"] = &Server::kickCmd;
 	cmdMap["TOPIC"] = &Server::topicCmd;
 	cmdMap["MODE"] = &Server::modeCmd;
+	cmdMap["INVITE"] = &Server::inviteCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -126,14 +127,14 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 			}
 			else if (cmdVec[2] == _channelMap[channel].getPassword())
 				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-			else if (cmdVec[2] != _channelMap[channel].getPassword())
-				throw WrongPassword();
 			else if (_channelMap[channel].getPassword() == "")
 				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-			} catch (std::exception &e) {
-				std::cout << "\033[31mError\033[0m :"<<  e.what() << std::endl;
-				sendToClient(clientFd, e.what());
-			}
+			else if (cmdVec[2] != _channelMap[channel].getPassword())
+				throw WrongPassword();
+		} catch (std::exception &e) {
+			std::cout << "\033[31mError\033[0m :"<<  e.what() << std::endl;
+			sendToClient(clientFd, e.what());
+		}
 		}
 }
 
@@ -288,11 +289,32 @@ void Server::modeCmd(int clientFd, const std::string& command) {
 		arg = "";
 	else
 		arg = cmd.substr(tmp + 1);
-	std::cout << "here :" << cmd.substr(1, 1) << "$\n";
 	if (tmpMap.count(cmd.substr(1, 1)) != 0) {
-		std::cout << "here\n";
 		(_channelMap[channel].*(tmpMap[cmd.substr(1, 1)]))(_userMap[clientFd], arg, std::atoi(arg.c_str()));
 	}
-	std::cout << "test\n";
 }
 
+void Server::inviteCmd(int clientFd, const std::string& command) {
+	if (_userMap.count(clientFd) == 0)
+		throw NoSuchOnServer();
+	size_t spacePos = command.find_first_of((' '));
+	if (spacePos == std::string::npos)
+		throw CmdNeedMoreParam();
+	std::string cmd = command.substr(spacePos + 1);
+	spacePos = cmd.find_first_of((' '));
+	if (spacePos == std::string::npos)
+		throw CmdNeedMoreParam();
+	if (cmd[spacePos + 1] != '#')
+		throw InviteFormatError();
+	std::string channel = cmd.substr(spacePos + 2);
+	if (_channelMap.count(channel) == 0)
+		throw NoSuchChannel();
+	std::string target = cmd.substr(spacePos);
+	for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
+		if (it->second._nickname == target) {
+			_channelMap[channel].addinvite(target, _userMap[clientFd]);
+			return ;
+		}
+	}
+	throw NotOnChannel();
+}

@@ -36,7 +36,7 @@ void Channel::removedUserLimit(clientId cData, std::string, unsigned int) {_chan
 void Channel::removedOp(clientId cData, std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
-	_userMap[name].isOp = true;
+	_userMap[name].isOp = false;
 	sendMessageToChannelUser(" -o " + name, cData, "MODE", true);
 }
 
@@ -68,9 +68,20 @@ void Channel::addUserLimit(clientId cData, std::string, unsigned int n) {
 void Channel::addOp(clientId cData, std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
-	_userMap[name].isOp = false;
+	_userMap[name].isOp = true;
 	sendMessageToChannelUser(" +o " + name, cData, "MODE", true);
 }
+
+
+void Channel::addinvite(std::string name, clientId cData) {
+	if (_inviteSet.count(name) == 0)
+		throw Server::AlreadyInvite();
+	else if (_userMap.count(cData._nickname) != 0)
+		throw Server::UserOnChan();
+	_inviteSet.insert(name);
+	sendMessageToChannelUser(name + ":", cData, "INVITE", true);
+}
+
 
 void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd, bool prompt) {
 	std::string toSend;
@@ -95,6 +106,8 @@ void Channel::printChannelUser() {
 void Channel::addUser(clientId data, int clientFd, bool op) {
 	if (_numOfUser + 1 > _channelMod.userLimit && _channelMod.userLimit != 0)
 		throw Server::ChanIsFull();
+	else if (_channelMod.inviteOnly == true && _inviteSet.find(data._nickname) == _inviteSet.end())
+		throw Server::ChanInviteOnly();
 	clientInfo newclientInfo;
 	newclientInfo.clientFd = clientFd;
 	newclientInfo.isOp = op;
