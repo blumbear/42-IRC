@@ -351,7 +351,7 @@ void Server::inviteCmd(int clientFd, const std::string& command) {
 		if (it->second._nickname == target) {
 			_channelMap[channel].addinvite(target);
 			sendToClient(clientFd, ":" + _serverName + " 341 " + _userMap[clientFd]._nickname + " " + target + " :#" + channel);
-			sendToClient(it->first, ":<" + _userMap[clientFd]._nickname + "!" + it->second._nickname + "@" + it->second._nickname + " INVITE " + target + " :#" + channel);
+			sendToClient(it->first, ":" + _userMap[clientFd]._nickname + "!" + it->second._nickname + "@" + it->second._nickname + " INVITE " + target + " :#" + channel);
 			return ;
 		}
 	}
