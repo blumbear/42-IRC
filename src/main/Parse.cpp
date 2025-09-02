@@ -162,10 +162,10 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		throw PrivmsgFormatError();
 	std::string tmp = cmd.substr(tmpPos + 1);
 	if (tmp[0] == '#') {
-		size_t tmpP = tmp.find_first_of(' ');
-		if (tmpP == std::string::npos)
-			tmpP = tmp.size();
-		std::string channel = tmp.substr(1, tmpP - 1);
+		tmpPos = tmp.find_first_of(' ');
+		if (tmpPos == std::string::npos)
+			tmpPos = tmp.size();
+		std::string channel = tmp.substr(1, tmpPos - 1);
 		if (_channelMap.count(channel)) {
 				if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
 					throw NotOnChannel();
@@ -173,10 +173,17 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		}
 		else throw ChannelNotFound();
 	} else {
+		tmpPos = tmp.find_first_of(' ');
+		if (tmpPos == std::string::npos)
+			tmpPos = tmp.size();
+		std::string target = tmp.substr(0, tmpPos);
 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
-			if (it->second._nickname == tmp)
-				sendToClient(it->first, "PRIVMSG :" + _userMap[clientFd]._nickname + " :" + command.substr(pos + 1));
+			if (it->second._nickname == target) {
+				sendToClient(it->first, ":" + _userMap[clientFd]._nickname + "!" + _userMap[clientFd]._nickname + "@" + _userMap[clientFd]._nickname + " PRIVMSG " + target + " :" + command.substr(pos + 1));
+				return ;
+			}
 		}
+		throw NoSuchNick();
 	}
 }
 
@@ -250,9 +257,11 @@ void Server::topicCmd(int clientFd, const std::string& command) {
 	if (cmd[0] != '#')
 		throw TopicFormatError();
 	tmp = cmd.find_first_of(' ');
-	if (tmp == std::string::npos)
-		throw CmdNeedMoreParam();
-	std::string channel = cmd.substr(1, tmp - 1);
+	std::string channel;
+	if (tmp == std::string::npos && cmd.find_first_of(':') == std::string::npos)
+		channel = cmd.substr(1);
+	else
+		channel = cmd.substr(1, tmp - 1);
 	if (_channelMap.count(channel) == 0)
 		throw NoSuchChannel();
 	else if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
@@ -342,7 +351,7 @@ void Server::inviteCmd(int clientFd, const std::string& command) {
 		if (it->second._nickname == target) {
 			_channelMap[channel].addinvite(target);
 			sendToClient(clientFd, ":" + _serverName + " 341 " + _userMap[clientFd]._nickname + " " + target + " :#" + channel);
-			sendToClient(it->first, ":<" + _userMap[clientFd]._nickname + "!" + it->second._nickname + "@" + _serverHost + " INVITE " + target + " :#" + channel);
+			sendToClient(it->first, ":<" + _userMap[clientFd]._nickname + "!" + it->second._nickname + "@" + it->second._nickname + " INVITE " + target + " :#" + channel);
 			return ;
 		}
 	}
