@@ -60,7 +60,7 @@ class Channel {
 		void addUserLimit(clientId cData, std::string, unsigned int n);
 		void addOp(clientId cData, std::string s, unsigned int);
 
-		void addinvite(std::string, clientId);
+		void addinvite(std::string);
 
 		void sendMessageToChannelUser(std::string, clientId, std::string, bool);
 		void printChannelUser();
