@@ -65,6 +65,7 @@ void Server::newClient(std::vector<pollfd>& fds) {
 		fds.push_back(tmp);
 		clientId test;
 		test._alreadyConnected = false;
+		test._pass = (_password == "");
 		_userMap[client_fd] = test;
 		std::cout << client_fd << " \033[32mIs connected\033[0m" << std::endl;
 	}

@@ -24,9 +24,9 @@ const char* Server::HostNameError::what() const throw() {return ("Hostname cant 
 
 const char* Server::UserCmdError::what() const throw() {return ("USER command wrong arguments.");}
 
-const char* Server::NoPasswordNeeded::what() const throw() {return ("No password is needed.");}
+const char* Server::NoPasswordNeeded::what() const throw() {return (":server 462 * :You may not reregister");}
 
-const char* Server::WrongPassword::what() const throw() {return ("Password is incorrect.");}
+const char* Server::WrongPassword::what() const throw() {return (":server 464 * :Password incorrect");}
 
 const char* Server::NickTooLongError::what() const throw() {return ("Nick is too long.");}
 
@@ -65,6 +65,8 @@ const char* Server::UserOnChan::what() const throw() {return (":443 ERR_USERONCH
 const char* Server::CmdNeedMoreParam::what() const throw() {return (":461 ERR_NEEDMOREPARAMS");}
 
 const char* Server::AlreadyRegistered::what() const throw() {return (":462 ERR_ALREADYREGISTRED");}
+
+const char* Server::PasswordIsNeeded::what() const throw() {return (":464 ERR_PASSWDMISMATCH");}
 
 const char* Server::ChanIsFull::what() const throw() {return (":471 ERR_CHANNELISFULL");}
 

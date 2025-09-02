@@ -15,18 +15,32 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["MODE"] = &Server::modeCmd;
 	cmdMap["INVITE"] = &Server::inviteCmd;
 	cmdMap["QUIT"] = &Server::quitCmd;
+
+	std::vector<std::string> connexionCmd;
+	connexionCmd.push_back("PASS");
+	connexionCmd.push_back("CAP");
+	connexionCmd.push_back("PING");
 	
 	size_t spacePos = command.find_first_of(' ');
-	
-	if (cmdMap.count(command.substr(0, spacePos))) {
-		try {(this->*cmdMap[command.substr(0, spacePos)])(clientFd, command);}
+	std::string function = command.substr(0, spacePos);
+	if (std::find(connexionCmd.begin(), connexionCmd.end(), function) != connexionCmd.end()) {
+		try {(this->*cmdMap[function])(clientFd, command);}
+		catch (std::exception &e) {
+			std::cout << "\033[31m" << e.what() << "\033[0m" << std::endl;
+			sendToClient(clientFd, e.what());
+		}
+	}
+	else if (std::find(connexionCmd.begin(), connexionCmd.end(), function) == connexionCmd.end() && cmdMap.count(function) && _userMap[clientFd]._pass == false)
+		throw PasswordIsNeeded();
+	else if (cmdMap.count(function)) {
+		try {(this->*cmdMap[function])(clientFd, command);}
 		catch (std::exception &e) {
 			std::cout << "\033[31m" << e.what() << "\033[0m" << std::endl;
 			sendToClient(clientFd, e.what());
 		}
 	}
 	else throw UnknownCmdError();
-	if (clientIsRegistered(clientFd) && _userMap[clientFd]._alreadyConnected == false) {
+	if (clientIsRegistered(clientFd) && _userMap[clientFd]._alreadyConnected == false && _userMap[clientFd]._pass == true) {
 		std::string toSend = ":server 001 " + _userMap[clientFd]._nickname + " :Welcome to the IRC Network " + _userMap[clientFd]._nickname;
 		sendToClient(clientFd, toSend);
 		_userMap[clientFd]._alreadyConnected = true;
