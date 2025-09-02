@@ -14,6 +14,7 @@ void Server::commandParse(const std::string& command, int clientFd) {
 	cmdMap["TOPIC"] = &Server::topicCmd;
 	cmdMap["MODE"] = &Server::modeCmd;
 	cmdMap["INVITE"] = &Server::inviteCmd;
+	cmdMap["QUIT"] = &Server::quitCmd;
 	
 	size_t spacePos = command.find_first_of(' ');
 	
@@ -151,8 +152,12 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		size_t tmpP = tmp.find_first_of(' ');
 		if (tmpP == std::string::npos)
 			tmpP = tmp.size();
-		if (_channelMap.count(tmp.substr(1, tmpP - 1)))
-			_channelMap[tmp.substr(1, tmpP - 1)].sendMessageToChannelUser(" :" + command.substr(pos + 1), _userMap[clientFd], "PRIVMSG", true);
+		std::string channel = tmp.substr(1, tmpP - 1);
+		if (_channelMap.count(channel)) {
+				if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
+					throw NotOnChannel();
+			_channelMap[channel].sendMessageToChannelUser(" :" + command.substr(pos + 1), _userMap[clientFd], "PRIVMSG", true);
+		}
 		else throw ChannelNotFound();
 	} else {
 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
@@ -168,17 +173,19 @@ void Server::partCmd(int clientFd, const std::string& command) {
 		throw CmdNeedMoreParam();
 	else if (cmdVec[1][0] != '#')
 		throw JoinFormatError();
-	std::string tmp = cmdVec[1].substr(1);
-	if (tmp.empty())
+	std::string channel = cmdVec[1].substr(1);
+	if (channel.empty())
 		throw CmdNeedMoreParam();
-	if (_channelMap.count(tmp) == 0)
+	if (_channelMap.count(channel) == 0)
 		throw NoSuchChannel();
+	else if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
+		throw NotOnChannel();
 	size_t dotpos = command.find_first_of(':');
 	try {
 		if (dotpos != std::string::npos)
-			_channelMap[tmp].removeUser(_userMap[clientFd], command.substr(dotpos + 1));
+			_channelMap[channel].removeUser(_userMap[clientFd], command.substr(dotpos + 1));
 		else
-			_channelMap[tmp].removeUser(_userMap[clientFd]);
+			_channelMap[channel].removeUser(_userMap[clientFd]);
 	} catch (std::exception &e) {
 		std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
 		sendToClient(clientFd, e.what());
@@ -193,13 +200,18 @@ void Server::kickCmd(int clientFd, const std::string& command) {
 	else
 		tmp = command.size() - 1;
 	size_t spacePos = command.find_first_of(' ');
-	if (spacePos == std::string::npos) throw CmdNeedMoreParam();
+	if (spacePos == std::string::npos)
+		throw CmdNeedMoreParam();
 	std::string buffer = command.substr(spacePos + 1, tmp);
 	spacePos = buffer.find_first_of(' ');
-	if (spacePos == std::string::npos) throw CmdNeedMoreParam();
+	if (spacePos == std::string::npos)
+		throw CmdNeedMoreParam();
 	if (buffer[0] != '#') throw KickFormatError();
 	std::string channel = buffer.substr(1, spacePos - 1);
-	if (_channelMap.count(channel) == 0) throw NoSuchChannel();
+	if (_channelMap.count(channel) == 0)
+		throw NoSuchChannel();
+	else if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
+		throw NotOnChannel();
 	try {
 		if (_channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
 			throw ChanPrivNeeded();
@@ -230,6 +242,8 @@ void Server::topicCmd(int clientFd, const std::string& command) {
 	std::string channel = cmd.substr(1, tmp - 1);
 	if (_channelMap.count(channel) == 0)
 		throw NoSuchChannel();
+	else if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
+		throw NotOnChannel();
 	tmp = cmd.find_first_of(':');
 	if (tmp == std::string::npos)
 		sendToClient(clientFd, ":server 332 " + _userMap[clientFd]._nickname + " #" + channel + " :" + _channelMap[channel].getTopic());
@@ -318,4 +332,13 @@ void Server::inviteCmd(int clientFd, const std::string& command) {
 		}
 	}
 	throw NoSuchNick();
+}
+
+void Server::quitCmd(int clientFd, const std::string& command) {
+	(void)command;
+	for (std::map<std::string, Channel>::iterator it = _channelMap.begin(); it != _channelMap.end(); it++) {
+		try {it->second.removeUser(_userMap[clientFd]._nickname);}
+		catch (std::exception &e) {std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;}
+	}
+	_userMap.erase(clientFd);
 }

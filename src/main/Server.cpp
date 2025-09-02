@@ -5,7 +5,9 @@
 Server::Server() {throw (ArgError());}
 
 Server::Server(std::string password, uint16_t port) :
-_password(password), _port(port), _serverOption("mutli-prefix server-time invite-notify"), _serverName("42_IRC") {initSocket();}
+_password(password), _port(port), _serverOption("mutli-prefix server-time invite-notify"), _serverName("42_IRC") {
+	initSocket();
+}
 
 Server::~Server() {}
 
@@ -46,6 +48,12 @@ void Server::initSocket() {
 	// SOMAXCONN -> Socket Max Connexion (default 1024)
 	if (listen(_serverFd, SOMAXCONN) < 0)
 		throw (ListenError());
+	
+	char hostname[250];
+	if (gethostname(hostname, sizeof(hostname)) != 0)
+		throw HostNameError();
+	_serverHost = hostname;
+
 }
 
 void Server::newClient(std::vector<pollfd>& fds) {
