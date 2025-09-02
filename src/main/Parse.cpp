@@ -104,12 +104,19 @@ void Server::pingCmd(int clientFd, const std::string& command) {
 }
 
 void Server::joinCmd(int clientFd, const std::string& command) {
-	std::vector<std::string> cmdVec = split(command, ' ');
-	if (cmdVec.size() < 2)
+	size_t pos = command.find_first_of(' ');
+	if (pos == std::string::npos)
 		throw CmdNeedMoreParam();
-	else if (cmdVec[1][0] != '#')
+	std::string cmd = command.substr(pos + 1);
+	if (cmd[0] != '#')
 		throw JoinFormatError();
-	std::string channel = cmdVec[1].substr(1);
+	pos = cmd.find_first_of(' ');
+	std::string channel;
+	if (pos == std::string::npos)
+		channel = cmd.substr(1);
+	else
+		channel = cmd.substr(1, pos - 1);
+	std::string password = cmd.substr(pos + 1);
 	if (channel.empty())
 		throw CmdNeedMoreParam();
 	if (_channelMap.count(channel) == 0) {
@@ -118,19 +125,11 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 	}
 	else {
 		try {
-			if (_channelMap[channel].find(_userMap[clientFd]._nickname) == true)
-				throw UserOnChan();
-			else if (_channelMap[channel].getInvite() == true) {
-				if (_channelMap[channel].isInvite(_userMap[clientFd]._nickname) == false)
-					throw ChanInviteOnly();
-				else
-					_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-			}
-			else if (cmdVec[2] == _channelMap[channel].getPassword())
+			if (password == _channelMap[channel].getPassword())
 				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
 			else if (_channelMap[channel].getPassword() == "")
 				_channelMap[channel].addUser(_userMap[clientFd], clientFd, false);
-			else if (cmdVec[2] != _channelMap[channel].getPassword())
+			else if (password != _channelMap[channel].getPassword())
 				throw WrongPassword();
 		} catch (std::exception &e) {
 			std::cout << "\033[31mError\033[0m :"<<  e.what() << std::endl;
@@ -156,7 +155,7 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		if (_channelMap.count(channel)) {
 				if (_channelMap[channel].find(_userMap[clientFd]._nickname) == false)
 					throw NotOnChannel();
-			_channelMap[channel].sendMessageToChannelUser(" :" + command.substr(pos + 1), _userMap[clientFd], "PRIVMSG", true);
+			_channelMap[channel].sendMessageToChannelUser(":" + command.substr(pos + 1), _userMap[clientFd], "PRIVMSG", true);
 		}
 		else throw ChannelNotFound();
 	} else {
@@ -222,7 +221,7 @@ void Server::kickCmd(int clientFd, const std::string& command) {
 		int userFd = _channelMap[channel].removeUser(userName.substr(0, spacePos));
 		sendToClient(userFd, "You have been kicked from " + channel + '.');
 		std::string kickMsg = command.substr(tmp + 1);
-		_channelMap[channel].sendMessageToChannelUser(' ' + userName.substr(0, spacePos) + " :" + (kickMsg == "" ? userName.substr(0, spacePos) + " has beed kicked.":kickMsg), _userMap[clientFd], "KICK", true);
+		_channelMap[channel].sendMessageToChannelUser(userName.substr(0, spacePos) + " :" + (kickMsg == "" ? userName.substr(0, spacePos) + " has beed kicked.":kickMsg), _userMap[clientFd], "KICK", true);
 	} catch (std::exception &e) {
 		std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
 		sendToClient(clientFd, e.what());
@@ -252,7 +251,7 @@ void Server::topicCmd(int clientFd, const std::string& command) {
 			&& _channelMap[channel].isOp(_userMap[clientFd]._nickname) == false)
 				throw ChanPrivNeeded();
 		_channelMap[channel].setTopic(cmd.substr(tmp + 1));
-		_channelMap[channel].sendMessageToChannelUser(" :" + _channelMap[channel].getTopic(), _userMap[clientFd], "TOPIC", true);
+		_channelMap[channel].sendMessageToChannelUser(":" + _channelMap[channel].getTopic(), _userMap[clientFd], "TOPIC", true);
 	}
 }
 
@@ -327,7 +326,9 @@ void Server::inviteCmd(int clientFd, const std::string& command) {
 	std::string target = cmd.substr(0, spacePos);
 	for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
 		if (it->second._nickname == target) {
-			_channelMap[channel].addinvite(target, _userMap[clientFd]);
+			_channelMap[channel].addinvite(target);
+			sendToClient(clientFd, ":" + _serverName + " 341 " + _userMap[clientFd]._nickname + " " + target + " :#" + channel);
+			sendToClient(it->first, ":<" + _userMap[clientFd]._nickname + "!" + it->second._nickname + "@" + _serverHost + " INVITE " + target + " :#" + channel);
 			return ;
 		}
 	}

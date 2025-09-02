@@ -4,7 +4,7 @@
 
 Channel::Channel() : _name("default") {}
 
-Channel::Channel(std::string name) : _name(name), _topic("Come chat.") {
+Channel::Channel(std::string name) : _name(name), _topic("Come chat."), _numOfUser(1) {
 	_channelMod.inviteOnly = false;
 	_channelMod.topicForOp = false;
 	_channelMod.password = "";
@@ -25,24 +25,24 @@ Channel &Channel::operator=(const Channel &other) {
 
 /* =========== Member Function =========== */
 
-void Channel::removedInviteOnly(clientId cData, std::string, unsigned int) {_channelMod.inviteOnly = false; sendMessageToChannelUser(" -i", cData, "MODE", true);}
+void Channel::removedInviteOnly(clientId cData, std::string, unsigned int) {_channelMod.inviteOnly = false; sendMessageToChannelUser("-i", cData, "MODE", true);}
 
-void Channel::removedTopicForOp(clientId cData, std::string, unsigned int) {_channelMod.topicForOp = false; sendMessageToChannelUser(" -t", cData, "MODE", true);}
+void Channel::removedTopicForOp(clientId cData, std::string, unsigned int) {_channelMod.topicForOp = false; sendMessageToChannelUser("-t", cData, "MODE", true);}
 
-void Channel::removedPassword(clientId cData, std::string, unsigned int) {_channelMod.password = ""; sendMessageToChannelUser(" -k", cData, "MODE", true);}
+void Channel::removedPassword(clientId cData, std::string, unsigned int) {_channelMod.password = ""; sendMessageToChannelUser("-k", cData, "MODE", true);}
 
-void Channel::removedUserLimit(clientId cData, std::string, unsigned int) {_channelMod.userLimit = 0; sendMessageToChannelUser(" -l", cData, "MODE", true);}
+void Channel::removedUserLimit(clientId cData, std::string, unsigned int) {_channelMod.userLimit = 0; sendMessageToChannelUser("-l", cData, "MODE", true);}
 
 void Channel::removedOp(clientId cData, std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
 	_userMap[name].isOp = false;
-	sendMessageToChannelUser(" -o " + name, cData, "MODE", true);
+	sendMessageToChannelUser("-o " + name, cData, "MODE", true);
 }
 
-void Channel::addInviteOnly(clientId cData, std::string, unsigned int) {_channelMod.inviteOnly = true; sendMessageToChannelUser(" +i", cData, "MODE", true);}
+void Channel::addInviteOnly(clientId cData, std::string, unsigned int) {_channelMod.inviteOnly = true; sendMessageToChannelUser("+i", cData, "MODE", true);}
 
-void Channel::addTopicForOp(clientId cData, std::string, unsigned int) {_channelMod.topicForOp = true; sendMessageToChannelUser(" +t", cData, "MODE", true);}
+void Channel::addTopicForOp(clientId cData, std::string, unsigned int) {_channelMod.topicForOp = true; sendMessageToChannelUser("+t", cData, "MODE", true);}
 
 void Channel::addPassword(clientId cData, std::string newPassword, unsigned int) {
 	if (newPassword.size() > 20)
@@ -50,7 +50,7 @@ void Channel::addPassword(clientId cData, std::string newPassword, unsigned int)
 	for (size_t i = 0; i < newPassword.size(); i++) {
 		if (newPassword[i] != ' ') {
 			_channelMod.password = newPassword;
-			sendMessageToChannelUser(" +k " + newPassword, cData, "MODE", true);
+			sendMessageToChannelUser("+k " + newPassword, cData, "MODE", true);
 			return ;
 		}
 	}
@@ -62,31 +62,30 @@ void Channel::addUserLimit(clientId cData, std::string, unsigned int n) {
 	std::ostringstream oss;
 	oss << n;
 	std::string str = oss.str();
-	sendMessageToChannelUser(" +l " + str, cData, "MODE", true);
+	sendMessageToChannelUser("+l " + str, cData, "MODE", true);
 }
 
 void Channel::addOp(clientId cData, std::string name, unsigned int) {
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
 	_userMap[name].isOp = true;
-	sendMessageToChannelUser(" +o " + name, cData, "MODE", true);
+	sendMessageToChannelUser("+o " + name, cData, "MODE", true);
 }
 
 
-void Channel::addinvite(std::string name, clientId cData) {
+void Channel::addinvite(std::string name) {
 	if (_inviteSet.count(name) != 0)
 		throw Server::AlreadyInvite();
 	else if (_userMap.count(name) != 0)
 		throw Server::UserOnChan();
 	_inviteSet.insert(name);
-	sendMessageToChannelUser(name + ":", cData, "INVITE", true);
 }
 
 
 void Channel::sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd, bool prompt) {
 	std::string toSend;
 	if (prompt) 
-		toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + msg + "\r\n";
+		toSend = ":" + cData._nickname + '!' + cData._username + "@tom " + cmd + " #" + _name + " " + msg + "\r\n";
 	else
 		toSend = msg;
 	std::cout << "\033[36mSent in " << _name << "\033[0m :" << toSend;
@@ -106,30 +105,35 @@ void Channel::printChannelUser() {
 void Channel::addUser(clientId data, int clientFd, bool op) {
 	if (_numOfUser + 1 > _channelMod.userLimit && _channelMod.userLimit != 0)
 		throw Server::ChanIsFull();
-	else if (_channelMod.inviteOnly == true && _inviteSet.find(data._nickname) == _inviteSet.end())
+	else if (_channelMod.inviteOnly == true && _inviteSet.count(data._nickname) == 0)
 		throw Server::ChanInviteOnly();
+	if (find(data._nickname) == true)
+		throw Server::UserOnChan();
 	clientInfo newclientInfo;
 	newclientInfo.clientFd = clientFd;
 	newclientInfo.isOp = op;
 	_userMap[data._nickname] = newclientInfo;
+	_numOfUser++;
 	const std::string toSend(data._nickname + " join the channel.");
-	sendMessageToChannelUser(" :" + toSend, data, "JOIN", true);
+	sendMessageToChannelUser(":" + toSend, data, "JOIN", true);
 }
 
 void Channel::removeUser(clientId data) {
 	if (_userMap.count(data._nickname) == 0)
 		throw Server::NotOnChannel();
 	const std::string toSend(data._nickname + " quit the channel.");
-	sendMessageToChannelUser(" :" + toSend, data, "PART", true);
+	sendMessageToChannelUser(":" + toSend, data, "PART", true);
 	_userMap.erase(data._nickname);
+	_numOfUser--;
 }
 
 void Channel::removeUser(clientId data, std::string msg) {
 	if (_userMap.count(data._nickname) == 0)
 		throw Server::NotOnChannel();
 	const std::string toSend(msg);
-	sendMessageToChannelUser(" :" + toSend, data, "PART", true);
+	sendMessageToChannelUser(":" + toSend, data, "PART", true);
 	_userMap.erase(data._nickname);
+	_numOfUser--;
 }
 
 int Channel::removeUser(std::string name) {
@@ -138,6 +142,7 @@ int Channel::removeUser(std::string name) {
 	int userFd = _userMap[name].clientFd;
 	_userMap.erase(name);
 	return userFd;
+	_numOfUser--;
 }
 
 bool Channel::isOp(std::string name) {
