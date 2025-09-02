@@ -19,6 +19,8 @@ const char* Server::SetsockOptError::what() const throw() {return ("Server can't
 
 const char* Server::PollError::what() const throw() {return ("Poll failed to read the socket.");}
 
+const char* Server::HostNameError::what() const throw() {return ("Hostname cant be read.");}
+
 
 const char* Server::UserCmdError::what() const throw() {return ("USER command wrong arguments.");}
 

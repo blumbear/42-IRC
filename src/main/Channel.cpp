@@ -133,7 +133,6 @@ void Channel::removeUser(clientId data, std::string msg) {
 }
 
 int Channel::removeUser(std::string name) {
-	std::cout << "-" << name << "-" << std::endl;
 	if (_userMap.count(name) == 0)
 		throw Server::NotOnChannel();
 	int userFd = _userMap[name].clientFd;

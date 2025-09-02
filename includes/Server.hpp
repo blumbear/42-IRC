@@ -80,6 +80,7 @@ class Server {
 		void topicCmd(int, const std::string&);
 		void modeCmd(int, const std::string&);
 		void inviteCmd(int, const std::string&);
+		void quitCmd(int, const std::string&);
 	public:
 /* =========== Exception Handler =========== */
 		class UnknownError: public std::exception {public :const char* what() const throw();};
@@ -90,6 +91,7 @@ class Server {
 		class ListenError: public std::exception {public :const char* what() const throw();};
 		class SetsockOptError: public std::exception {public :const char* what() const throw();};
 		class PollError: public std::exception {public :const char* what() const throw();};
+		class HostNameError: public std::exception {public :const char* what() const throw();};
 
 		class UserCmdError: public std::exception {public :const char* what() const throw();};
 		class NoPasswordNeeded: public std::exception {public :const char* what() const throw();};
