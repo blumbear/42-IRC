@@ -20,8 +20,12 @@ The list of command will follow the order `nc's command` | `irssi's command`.
 - `USER <username> <hostname> <servername> :<realname>` |
 - `NICK <nickname>` | `/nick <nickname>` |
 - `JOIN #<channel>` | `/join channel`
-- `PART #channel` | `/part`
+- `PART #channel` | `/part` (in a channel)
 - `PRIVMSG #<channel> :<message>` | `<message>` (in a channel)
 - `PRIVMSG <target> :<message>`
 - `INVITE <target> #<channel>` | `/invite <target>` (in a channel)
-- `TOPIC`
+- `TOPIC #<channel>` | `/topic` (in a channel)
+- `TOPIC  #<channel> :<new_topic>` | `/topic <new_topic>` (in a channel)
+- `MODE #<channel> +<flag>` | `/mode +<flag>` (in a channel)
+- `MODE #<channel> -<flag>` | `/mode -<flag>` (in a channel)
+- `KICK #<channel> <target> :<kick_message>`
