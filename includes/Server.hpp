@@ -116,6 +116,7 @@ class Server {
 		class UserOnChan: public std::exception {public :const char* what() const throw();};
 		class CmdNeedMoreParam: public std::exception {public :const char* what() const throw();};
 		class AlreadyRegistered: public std::exception {public :const char* what() const throw();};
+		class PasswordIsNeeded: public std::exception {public :const char* what() const throw();};
 		class ChanIsFull: public std::exception {public :const char* what() const throw();};
 		class UnknownMode: public std::exception {public :const char* what() const throw();};
 		class ChanInviteOnly: public std::exception {public :const char* what() const throw();};
