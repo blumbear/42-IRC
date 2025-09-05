@@ -160,5 +160,4 @@ void Channel::updateNick(std::string oldname, std::string newname) {
 	_userMap.erase(oldname);
 	_userMap[newname] = tmp;
 	std::cout << "nick is up to date on " << _name << '.' << std::endl;
-	printChannelUser();
 }
