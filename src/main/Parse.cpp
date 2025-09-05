@@ -69,9 +69,9 @@ void Server::nickCmd(int clientFd, const std::string& command) {
 		if (it->second._nickname == nickname)
 			throw NickInUse();
 	}
-	if (nickname.size() > 15) {
+	if (nickname.size() > 15)
 		throw NickTooLongError();
-	}
+	sendToClient(clientFd, ":" + _userMap[clientFd]._nickname + "!" + _userMap[clientFd]._username + "@" + _serverHost + " NICK :" + nickname);
 	_userMap[clientFd]._nickname = nickname;
 }
 
