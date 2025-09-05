@@ -60,15 +60,15 @@ class Channel {
 		void addUserLimit(clientId cData, std::string, unsigned int n);
 		void addOp(clientId cData, std::string s, unsigned int);
 
-		void addinvite(std::string);
+		void addinvite(std::string name);
 
-		void sendMessageToChannelUser(std::string, clientId, std::string, bool);
+		void sendMessageToChannelUser(std::string msg, clientId cData, std::string cmd, bool prompt);
 		void printChannelUser();
 
-		void addUser(clientId, int, bool);
-		void removeUser(clientId);
-		void removeUser(clientId, std::string);
-		int removeUser(std::string);
+		void addUser(clientId cData, int clientFd, bool op);
+		void removeUser(clientId cData);
+		void removeUser(clientId cData, std::string msg);
+		int removeUser(std::string name);
 
 		void setName(std::string name) {_name = name;}
 		void setTopic(std::string newTopic) {_topic = newTopic;}
@@ -81,6 +81,7 @@ class Channel {
 
 		bool find(std::string name) {return _userMap.count(name);}
 		bool isInvite(std::string name) {return _inviteSet.count(name) != 0;}
-		bool isOp(std::string);
+		bool isOp(std::string name);
+		void updateNick(std::string oldname, std::string newname);
 };
 

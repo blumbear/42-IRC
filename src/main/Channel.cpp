@@ -102,37 +102,37 @@ void Channel::printChannelUser() {
 }
 
 
-void Channel::addUser(clientId data, int clientFd, bool op) {
+void Channel::addUser(clientId cData, int clientFd, bool op) {
 	if (_numOfUser + 1 > _channelMod.userLimit && _channelMod.userLimit != 0)
 		throw Server::ChanIsFull();
-	else if (_channelMod.inviteOnly == true && _inviteSet.count(data._nickname) == 0)
+	else if (_channelMod.inviteOnly == true && _inviteSet.count(cData._nickname) == 0)
 		throw Server::ChanInviteOnly();
-	if (find(data._nickname) == true)
+	if (find(cData._nickname) == true)
 		throw Server::UserOnChan();
 	clientInfo newclientInfo;
 	newclientInfo.clientFd = clientFd;
 	newclientInfo.isOp = op;
-	_userMap[data._nickname] = newclientInfo;
+	_userMap[cData._nickname] = newclientInfo;
 	_numOfUser++;
-	const std::string toSend(data._nickname + " join the channel.");
-	sendMessageToChannelUser(":" + toSend, data, "JOIN", true);
+	const std::string toSend(cData._nickname + " join the channel.");
+	sendMessageToChannelUser(":" + toSend, cData, "JOIN", true);
 }
 
-void Channel::removeUser(clientId data) {
-	if (_userMap.count(data._nickname) == 0)
+void Channel::removeUser(clientId cData) {
+	if (_userMap.count(cData._nickname) == 0)
 		throw Server::NotOnChannel();
-	const std::string toSend(data._nickname + " quit the channel.");
-	sendMessageToChannelUser(":" + toSend, data, "PART", true);
-	_userMap.erase(data._nickname);
+	const std::string toSend(cData._nickname + " quit the channel.");
+	sendMessageToChannelUser(":" + toSend, cData, "PART", true);
+	_userMap.erase(cData._nickname);
 	_numOfUser--;
 }
 
-void Channel::removeUser(clientId data, std::string msg) {
-	if (_userMap.count(data._nickname) == 0)
+void Channel::removeUser(clientId cData, std::string msg) {
+	if (_userMap.count(cData._nickname) == 0)
 		throw Server::NotOnChannel();
 	const std::string toSend(msg);
-	sendMessageToChannelUser(":" + toSend, data, "PART", true);
-	_userMap.erase(data._nickname);
+	sendMessageToChannelUser(":" + toSend, cData, "PART", true);
+	_userMap.erase(cData._nickname);
 	_numOfUser--;
 }
 
@@ -151,4 +151,14 @@ bool Channel::isOp(std::string name) {
 			return it->second.isOp;
 	}
 	return false;
+}
+
+void Channel::updateNick(std::string oldname, std::string newname) {
+	if (_userMap.count(oldname) == 0)
+		throw Server::NoSuchNick();
+	clientInfo tmp = _userMap[oldname];
+	_userMap.erase(oldname);
+	_userMap[newname] = tmp;
+	std::cout << "nick is up to date on " << _name << '.' << std::endl;
+	printChannelUser();
 }

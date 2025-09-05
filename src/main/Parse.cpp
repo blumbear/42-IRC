@@ -71,6 +71,12 @@ void Server::nickCmd(int clientFd, const std::string& command) {
 	}
 	if (nickname.size() > 15)
 		throw NickTooLongError();
+	if (_channelMap.empty() == false) {
+		for (std::map<std::string, Channel>::iterator it = _channelMap.begin(); it != _channelMap.end(); it++) {
+			if (it->second.find(_userMap[clientFd]._nickname) == true)
+				it->second.updateNick(_userMap[clientFd]._nickname, nickname);
+		}
+	}
 	sendToClient(clientFd, ":" + _userMap[clientFd]._nickname + "!" + _userMap[clientFd]._username + "@" + _serverHost + " NICK :" + nickname);
 	_userMap[clientFd]._nickname = nickname;
 }
