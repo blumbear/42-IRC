@@ -117,6 +117,10 @@ void Server::handleCommand(std::vector<pollfd> fds, int i) {
 	else if (bytesRead == 0) {
 		std::cout << fds[i].fd << "\033[32m Disconnected\033[0m" << std::endl;
 		close(fds[i].fd);
+		for (std::map<std::string, Channel>::iterator it = _channelMap.begin(); it != _channelMap.end(); it++) {
+			if (it->second.find(_userMap[fds[i].fd]._nickname) == true)
+				it->second.removeUser(_userMap[fds[i].fd]._nickname);
+		}
 		fds.erase(fds.begin() + i);
 	} else {
 		std::cerr << "\033[31mError with the client\033[0m : " << fds[i].fd << std::endl;
