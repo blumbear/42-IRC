@@ -141,7 +141,7 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 		throw CmdNeedMoreParam();
 	if (_channelMap.count(channel) == 0) {
 		for (size_t i = 0; i < channel.size(); i++){
-			if (static_cast<std::string>("/;, \"\'%~()[]{}*+.").find(channel[i]) != std::string::npos) {
+			if (static_cast<std::string>("/;, \"\'%~()[]{}*+.").find(channel[i]) != std::string::npos || channel.size() > 15) {
 				sendToClient(clientFd, ":"+_serverName+" 479 "+_userMap[clientFd]._nickname+" :Illegal channel name");
 				throw JoinFormatError();
 			}
