@@ -28,4 +28,4 @@ The list of command will follow the order `nc's command` | `irssi's command`.
 - `TOPIC  #<channel> :<new_topic>` | `/topic <new_topic>` (in a channel)
 - `MODE #<channel> +<flag>` | `/mode +<flag>` (in a channel)
 - `MODE #<channel> -<flag>` | `/mode -<flag>` (in a channel)
-- `KICK #<channel> <target> :<kick_message>`
+- `KICK #<channel> <target> :<kick_message> | /kick <user>` (in a channel)
