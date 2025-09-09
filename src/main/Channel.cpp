@@ -4,7 +4,7 @@
 
 Channel::Channel() : _name("default") {}
 
-Channel::Channel(std::string name) : _name(name), _topic("Come chat."), _numOfUser(1) {
+Channel::Channel(std::string name) : _name(name), _topic("Come chat."), _numOfUser(0) {
 	_channelMod.inviteOnly = false;
 	_channelMod.topicForOp = false;
 	_channelMod.password = "";
@@ -47,6 +47,8 @@ void Channel::addTopicForOp(clientId cData, std::string, unsigned int) {_channel
 void Channel::addPassword(clientId cData, std::string newPassword, unsigned int) {
 	if (newPassword.size() > 20)
 		throw passwordTooLong();
+	if (newPassword.find(':') != std::string::npos)
+		throw passwordIncorect();
 	for (size_t i = 0; i < newPassword.size(); i++) {
 		if (newPassword[i] != ' ') {
 			_channelMod.password = newPassword;
