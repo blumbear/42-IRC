@@ -140,6 +140,10 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 	if (channel.empty())
 		throw CmdNeedMoreParam();
 	if (_channelMap.count(channel) == 0) {
+		for (size_t i = 0; i < channel.size(); i++){
+			if (static_cast<std::string>("/;, \"\'%~()[]{}*+.").find(channel[i]) != std::string::npos)
+				throw JoinFormatError();
+		}
 		_channelMap[channel] = Channel(channel);
 		_channelMap[channel].addUser(_userMap[clientFd], clientFd, true);
 	}
@@ -246,8 +250,8 @@ void Server::kickCmd(int clientFd, const std::string& command) {
 		if (spacePos == std::string::npos)
 			spacePos = userName.find_first_of(':');
 		int userFd = _channelMap[channel].removeUser(userName.substr(0, spacePos));
-		sendToClient(userFd, "You have been kicked from " + channel + '.');
 		std::string kickMsg = command.substr(tmp + 1);
+		sendToClient(userFd, ':'+_userMap[clientFd]._nickname+'!'+_userMap[userFd]._nickname+'@'+_serverHost+" KICK #"+channel+' '+_userMap[userFd]._nickname+" :"+kickMsg);
 		_channelMap[channel].sendMessageToChannelUser(userName.substr(0, spacePos) + " :" + (kickMsg == "" ? userName.substr(0, spacePos) + " has beed kicked.":kickMsg), _userMap[clientFd], "KICK", true);
 	} catch (std::exception &e) {
 		std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;
