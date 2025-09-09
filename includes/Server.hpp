@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <climits>
 #include <ctime>
+#include <signal.h>
 
 /* ================= C++ Lib Includes ================= */
 
@@ -136,4 +137,5 @@ class Server {
 /* ================= Utils ================= */
 
 	std::vector<std::string> split(const std::string& str, char delimiter);
+
 };

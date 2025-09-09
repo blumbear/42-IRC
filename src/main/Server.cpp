@@ -1,5 +1,7 @@
 #include "Server.hpp"
 
+extern volatile sig_atomic_t g_shutdown;
+
 /* ======= Constructor & Destructor ======= */
 
 Server::Server() {throw (ArgError());}
@@ -177,7 +179,7 @@ void Server::pollLoop() {
 	pollfd tmp = {_serverFd, POLLIN, 0};
 	fds.push_back(tmp);  // Server to check with accept()
 	displayPrompt();
-	while (true) {
+	while (g_shutdown != 1) {
 
 		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
 		if (activity < 0)
@@ -191,8 +193,9 @@ void Server::pollLoop() {
 					handleCommand(fds, i);
 			}
 		}
-
 	}
+	close(_port);
+	exit(0);
 }
 
 /* ================= Utils ================= */
