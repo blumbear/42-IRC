@@ -141,8 +141,10 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 		throw CmdNeedMoreParam();
 	if (_channelMap.count(channel) == 0) {
 		for (size_t i = 0; i < channel.size(); i++){
-			if (static_cast<std::string>("/;, \"\'%~()[]{}*+.").find(channel[i]) != std::string::npos)
+			if (static_cast<std::string>("/;, \"\'%~()[]{}*+.").find(channel[i]) != std::string::npos) {
+				sendToClient(clientFd, ":"+_serverName+" 479 "+_userMap[clientFd]._nickname+" :Illegal channel name");
 				throw JoinFormatError();
+			}
 		}
 		_channelMap[channel] = Channel(channel);
 		_channelMap[channel].addUser(_userMap[clientFd], clientFd, true);
@@ -189,7 +191,7 @@ void Server::privmsgCmd(int clientFd, const std::string& command) {
 		std::string target = tmp.substr(0, tmpPos);
 		for (std::map<int, clientId>::iterator it = _userMap.begin(); it != _userMap.end(); it++) {
 			if (it->second._nickname == target) {
-				sendToClient(it->first, ":" + _userMap[clientFd]._nickname + "!" + _userMap[clientFd]._nickname + "@" + _userMap[clientFd]._nickname + " PRIVMSG " + target + " :" + command.substr(pos + 1));
+				sendToClient(it->first, ":" + _userMap[clientFd]._nickname + "!" + it->second._nickname + "@" + _serverHost + " PRIVMSG " + target + " :" + command.substr(pos + 1));
 				return ;
 			}
 		}
