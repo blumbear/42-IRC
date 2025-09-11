@@ -194,6 +194,8 @@ void Server::pollLoop() {
 			}
 		}
 	}
+	for (size_t i = 0; i < fds.size();i++)
+		close(fds[i].fd);
 	close(_port);
 	exit(0);
 }
