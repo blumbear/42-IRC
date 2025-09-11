@@ -146,7 +146,7 @@ void Server::joinCmd(int clientFd, const std::string& command) {
 				throw JoinFormatError();
 			}
 		}
-		_channelMap[channel] = Channel(channel);
+		_channelMap.insert(std::make_pair(channel, Channel(channel)));
 		_channelMap[channel].addUser(_userMap[clientFd], clientFd, true);
 	}
 	else {

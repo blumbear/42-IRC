@@ -14,7 +14,7 @@ struct channelMod {
 	bool inviteOnly;
 	bool topicForOp;
 	std::string password; //if password == "", password dosn't exist
-	unsigned int userLimit; // if == 0 no user limit
+	int userLimit; // if == 0 no user limit
 };
 
 struct clientInfo {
@@ -26,7 +26,7 @@ class Channel {
 	private:
 		std::string _name;
 		std::string _topic;
-		unsigned int _numOfUser;
+		int _numOfUser;
 		channelMod _channelMod;
 		std::set<std::string> _inviteSet;
 		std::map<std::string, clientInfo> _userMap; // nom de chaque utilisateur sur le channel et si oui ou non il est op

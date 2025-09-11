@@ -103,7 +103,6 @@ void Server::handleCommand(std::vector<pollfd> _fds, int i) {
 				strip_crlf(*it);
 				try {commandParse((*it), _fds[i].fd);}
 				catch (std::exception &e) {
-					
 					sendToClient(_fds[i].fd, e.what());
 				}
 			}
