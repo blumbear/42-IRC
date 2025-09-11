@@ -2,7 +2,14 @@
 
 /* ======= Constructor & Destructor ======= */
 
-Channel::Channel() : _name("default") {}
+Channel::Channel() : _name("default"),  _topic("Come chat."), _numOfUser(0) {
+	_channelMod.inviteOnly = false;
+	_channelMod.topicForOp = false;
+	_channelMod.password = "";
+	_channelMod.userLimit = 0;
+	_numOfUser = 0;
+	std::cout << "Channel " << _name << " is create. " << _numOfUser << std::endl;
+}
 
 Channel::Channel(std::string name) : _name(name), _topic("Come chat."), _numOfUser(0) {
 	_channelMod.inviteOnly = false;
@@ -107,6 +114,7 @@ void Channel::printChannelUser() {
 void Channel::addUser(clientId cData, int clientFd, bool op) {
 	if (_numOfUser == _channelMod.userLimit && _channelMod.userLimit != 0)
 		throw Server::ChanIsFull();
+	std::cout << "$" << _numOfUser << "$" << std::endl;
 	if (_channelMod.inviteOnly == true && _inviteSet.count(cData._nickname) == 0)
 		throw Server::ChanInviteOnly();
 	if (find(cData._nickname) == true)
