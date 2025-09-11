@@ -58,13 +58,13 @@ void Server::initSocket() {
 
 }
 
-void Server::newClient(std::vector<pollfd>& fds) {
+void Server::newClient() {
 	struct sockaddr_in client_addr;
 	socklen_t addr_len = sizeof(client_addr);
 	int client_fd = accept(_serverFd, (struct sockaddr*)&client_addr, &addr_len);
 	if (client_fd >= 0) {
 		pollfd tmp = {client_fd, POLLIN, 0};
-		fds.push_back(tmp);
+		_fds.push_back(tmp);
 		clientId test;
 		test._alreadyConnected = false;
 		test._pass = (_password == "");
@@ -90,42 +90,38 @@ static void strip_crlf(std::string &s) {
 	if (!s.empty() && s[s.size()-1] == '\r') s.erase(s.size()-1);
 }
 
-void Server::handleCommand(std::vector<pollfd> fds, int i) {
+void Server::handleCommand(std::vector<pollfd> _fds, int i) {
 	char buffer[1024];
-	ssize_t bytesRead = recv(fds[i].fd, buffer, sizeof(buffer) - 1, 0);
+	ssize_t bytesRead = recv(_fds[i].fd, buffer, sizeof(buffer) - 1, 0);
 	if (bytesRead > 0) {
 		buffer[bytesRead] = '\0'; // Null-terminate
 		std::string command(buffer);
-		std::cout << fds[i].fd << " \033[35mSend \033[0m:"<< command;
+		std::cout << _fds[i].fd << " \033[35mSend \033[0m:"<< command;
 		if (std::count(command.begin(), command.end(), '\n') > 1) {
 			std::vector<std::string> darray = split(command, '\n');
 			for (std::vector<std::string>::iterator it = darray.begin(); it != darray.end(); ++it) {
 				strip_crlf(*it);
-				try {commandParse((*it), fds[i].fd);}
+				try {commandParse((*it), _fds[i].fd);}
 				catch (std::exception &e) {
 					
-					sendToClient(fds[i].fd, e.what());
+					sendToClient(_fds[i].fd, e.what());
 				}
 			}
 		}
 		else {
-			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), fds[i].fd);}
+			try { commandParse(command.erase(command.find_last_not_of("\r\n ") + 1), _fds[i].fd);}
 			catch (std::exception &e) {
 				std::cout << "\033[31mError\033[0m :"<<  e.what() << std::endl;
-				sendToClient(fds[i].fd, e.what());
+				sendToClient(_fds[i].fd, e.what());
 			}
 		}
 	}
 	else if (bytesRead == 0) {
-		std::cout << fds[i].fd << "\033[32m Disconnected\033[0m" << std::endl;
-		close(fds[i].fd);
-		for (std::map<std::string, Channel>::iterator it = _channelMap.begin(); it != _channelMap.end(); it++) {
-			if (it->second.find(_userMap[fds[i].fd]._nickname) == true)
-				it->second.removeUser(_userMap[fds[i].fd]._nickname);
-		}
-		fds.erase(fds.begin() + i);
+		std::cout << _fds[i].fd << "\033[32m Disconnected\033[0m" << std::endl;
+		quitCmd(_fds[i].fd, "");
+		_fds.erase(_fds.begin() + i);
 	} else {
-		std::cerr << "\033[31mError with the client\033[0m : " << fds[i].fd << std::endl;
+		std::cerr << "\033[31mError with the client\033[0m : " << _fds[i].fd << std::endl;
 	}
 }
 
@@ -175,27 +171,27 @@ void Server::sendPingToAllClients() {
 /* ================= Loop ================= */
 
 void Server::pollLoop() {
-	std::vector<pollfd> fds;
 	pollfd tmp = {_serverFd, POLLIN, 0};
-	fds.push_back(tmp);  // Server to check with accept()
+	_fds.push_back(tmp);  // Server to check with accept()
 	displayPrompt();
 	while (g_shutdown != 1) {
 
-		int activity = poll(fds.data(), fds.size(), -1); // -1 = block
+		int activity = poll(_fds.data(), _fds.size(), -1); // -1 = block
 		if (activity < 0)
 			throw (PollError());
 
-		for (size_t i = 0; i < fds.size(); i++) {
-			if (fds[i].revents & POLLIN) {
-				if (fds[i].fd == _serverFd)
-					newClient(fds);
+		for (size_t i = 0; i < _fds.size(); i++) {
+			if (_fds[i].revents & POLLIN) {
+				if (_fds[i].fd == _serverFd)
+					newClient();
 				else
-					handleCommand(fds, i);
+					handleCommand(_fds, i);
 			}
 		}
 	}
-	for (size_t i = 0; i < fds.size();i++)
-		close(fds[i].fd);
+	for (std::vector<pollfd>::iterator it = _fds.begin() ; it != _fds.end() ; it++) {
+		close(it->fd);
+	}
 	close(_port);
 	exit(0);
 }

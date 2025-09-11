@@ -54,13 +54,14 @@ class Server {
 		const std::string	_serverName;
 		std::map<std::string, Channel> _channelMap;
 		std::map<int, clientId>	_userMap; // map of fd and nickname username
+		std::vector<pollfd> _fds;
 
 /* ============ Private Function ============ */
 
 		void initSocket();
-		void newClient(std::vector<pollfd>& fds);
+		void newClient();
 		bool clientIsRegistered(int clientFd);
-		void handleCommand(std::vector<pollfd> fds, int i);
+		void handleCommand(std::vector<pollfd> _fds, int i);
 		void displayPrompt();
 		void sendToClient(int client, const std::string& msg);
 		void getIpAddress();

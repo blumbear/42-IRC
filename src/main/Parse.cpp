@@ -374,7 +374,14 @@ void Server::quitCmd(int clientFd, const std::string& command) {
 	(void)command;
 	for (std::map<std::string, Channel>::iterator it = _channelMap.begin(); it != _channelMap.end(); it++) {
 		try {it->second.removeUser(_userMap[clientFd]._nickname);}
-		catch (std::exception &e) {std::cout << "\033[31m"<<  e.what() << "\033[0m" << std::endl;}
+		catch (std::exception &e) {continue;}
 	}
 	_userMap.erase(clientFd);
+	for (std::vector<pollfd>::iterator it = _fds.begin(); it != _fds.end(); it++) {
+		if (it->fd == clientFd) {
+			_fds.erase(it);
+			close(clientFd);
+			return ;
+		}
+	}
 }
