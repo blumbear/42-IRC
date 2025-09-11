@@ -24,12 +24,12 @@ struct clientInfo {
 
 class Channel {
 	private:
-		std::map<std::string, clientInfo> _userMap; // nom de chaque utilisateur sur le channel et si oui ou non il est op
 		std::string _name;
-		channelMod _channelMod;
 		std::string _topic;
-		std::set<std::string> _inviteSet;
 		unsigned int _numOfUser;
+		channelMod _channelMod;
+		std::set<std::string> _inviteSet;
+		std::map<std::string, clientInfo> _userMap; // nom de chaque utilisateur sur le channel et si oui ou non il est op
 	public:
 
 

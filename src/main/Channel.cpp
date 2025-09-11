@@ -9,7 +9,7 @@ Channel::Channel(std::string name) : _name(name), _topic("Come chat."), _numOfUs
 	_channelMod.topicForOp = false;
 	_channelMod.password = "";
 	_channelMod.userLimit = 0;
-	std::cout << "Channel " << _name << " is create." << std::endl;
+	std::cout << "Channel " << _name << " is create. " << _numOfUser << std::endl;
 }
 
 Channel::~Channel() {}
@@ -105,9 +105,9 @@ void Channel::printChannelUser() {
 
 
 void Channel::addUser(clientId cData, int clientFd, bool op) {
-	if (_numOfUser + 1 > _channelMod.userLimit && _channelMod.userLimit != 0)
+	if (_numOfUser == _channelMod.userLimit && _channelMod.userLimit != 0)
 		throw Server::ChanIsFull();
-	else if (_channelMod.inviteOnly == true && _inviteSet.count(cData._nickname) == 0)
+	if (_channelMod.inviteOnly == true && _inviteSet.count(cData._nickname) == 0)
 		throw Server::ChanInviteOnly();
 	if (find(cData._nickname) == true)
 		throw Server::UserOnChan();
@@ -117,6 +117,7 @@ void Channel::addUser(clientId cData, int clientFd, bool op) {
 	_userMap[cData._nickname] = newclientInfo;
 	_numOfUser++;
 	const std::string toSend(cData._nickname + " join the channel.");
+	std::cout << toSend << std::endl;
 	sendMessageToChannelUser(":" + toSend, cData, "JOIN", true);
 }
 
