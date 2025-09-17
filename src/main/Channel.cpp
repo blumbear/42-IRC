@@ -151,8 +151,8 @@ int Channel::removeUser(std::string name) {
 		throw Server::NotOnChannel();
 	int userFd = _userMap[name].clientFd;
 	_userMap.erase(name);
-	return userFd;
 	_numOfUser--;
+	return userFd;
 }
 
 bool Channel::isOp(std::string name) {
