@@ -114,7 +114,6 @@ void Channel::printChannelUser() {
 void Channel::addUser(clientId cData, int clientFd, bool op) {
 	if (_numOfUser == _channelMod.userLimit && _channelMod.userLimit != 0)
 		throw Server::ChanIsFull();
-	std::cout << "$" << _numOfUser << "$" << std::endl;
 	if (_channelMod.inviteOnly == true && _inviteSet.count(cData._nickname) == 0)
 		throw Server::ChanInviteOnly();
 	if (find(cData._nickname) == true)
